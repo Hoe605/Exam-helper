@@ -1,23 +1,33 @@
 import os
 
-def load_prompt(file_name: str) -> str:
+def load_prompt(prompt_path: str) -> str:
     """
-    加载指定名称的提示词模板文件 (.md 或 .txt)
-    路径固定为 src/core/prompt/
+    加载指定路径的提示词模板文件 (.md 或 .txt)
+    路径基准为 src/core/prompt/
+    
+    支持子目录解析, 如: load_prompt("common/plan_task")
     """
-    # 获取当前项目的根路径
-    # 逻辑: .../src/core/util/prompt_loader.py -> .../src/core/prompt/
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    prompt_dir = os.path.join(current_dir, "..", "prompt")
+    prompt_base_dir = os.path.abspath(os.path.join(current_dir, "..", "prompt"))
     
-    # 拼接完整路径 (如果没后缀自动补全 .md)
-    if not file_name.endswith((".md", ".txt")):
-        file_name += ".md"
+    # 构建完整的文件路径
+    full_path = os.path.join(prompt_base_dir, prompt_path)
     
-    file_path = os.path.join(prompt_dir, file_name)
+    # 自动处理常见后缀
+    possible_paths = [
+        full_path,
+        full_path + ".md",
+        full_path + ".txt"
+    ]
     
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"未找到提示词模板文件: {file_path}")
+    actual_path = None
+    for p in possible_paths:
+        if os.path.isfile(p):
+            actual_path = p
+            break
+            
+    if not actual_path:
+        raise FileNotFoundError(f"未找到提示词模板文件: {prompt_path} (搜寻路径: {prompt_base_dir})")
         
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(actual_path, "r", encoding="utf-8") as f:
         return f.read()
