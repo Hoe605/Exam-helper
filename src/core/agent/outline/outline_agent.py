@@ -3,8 +3,8 @@ from pydantic import BaseModel, Field
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
 from langgraph.graph import StateGraph, START, END
-
 from core.llm import get_llm
+from core.util.prompt_loader import load_prompt  # 引入加载器
 
 # ==========================================
 # 1. 定义数据结构 (Pydantic Models 约束输出)
@@ -38,23 +38,19 @@ def extract_nodes_node(state: OutlineState):
     负责将纯文本按层级拆解为结构化节点
     """
     document_content = state["document_content"]
-    
-    # 获取 LLM 实例 (这里可以开启或关闭 streaming)
     llm = get_llm(streaming=False)
     
     # 采用 PydanticOutputParser 可以更好地兼容国内大模型（例如 GLM-4）有时返回带 markdown json 的情况
     parser = PydanticOutputParser(pydantic_object=OutlineExtractionResult)
     format_instructions = parser.get_format_instructions()
     
+    system_prompt_template = load_prompt("outline_extraction.md")
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "你是一个教育领域的知识图谱构建专家。\n"
-                   "你的任务是从用户提供的大纲文本中，提取出所有层级结构（包括学科、章节、具体的考点），并识别它们的父子关系。\n"
-                   "要求尽可能的细化，明确 parent_name 以便我们在数据库重构为树形结构。\n"
-                   "请严格按照以下 JSON 格式输出，不要包含任何多余的解释文字或 MarkDown 块修饰：\n"
-                   "{format_instructions}"),
-        ("user", "以下是待解析的大纲片段：\n\n{document_content}")
+        ("system", system_prompt_template),
+        ("user", "以下是待解析的大纲原始文本段落：\n\n{document_content}")
     ])
     
+    # 填充格式化指令 (PydanticOutputParser 需要这个)
     chain = prompt | llm | parser
     
     import logging
