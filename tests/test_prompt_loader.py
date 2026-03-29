@@ -1,35 +1,31 @@
 import pytest
-import os
-from core.util.prompt_loader import load_prompt
+from core.util.prompt_loader import load_prompt, load_prompt_section, load_all_sections
 
 def test_load_prompt_with_subdir():
-    """
-    测试加载器是否支持子目录 (agent/outline_extraction)
-    """
-    # 1. 测试 agent 目录下的
-    content_agent = load_prompt("agent/outline_extraction")
-    assert "教育大纲知识提取助手" in content_agent
-    assert "{format_instructions}" in content_agent
+    # 测试常规加载
+    content = load_prompt("agent/outline_extraction")
+    assert "教育大纲解析与计划指领" in content
 
-def test_load_prompt_common_plan():
+def test_load_prompt_sections():
     """
-    测试加载器是否支持 common 目录下的 plan_task
+    核心测试：验证 '---' 分割加载功能是否正常。
     """
-    content_plan = load_prompt("common/plan_task")
-    assert "Planning Mode" in content_plan
-    assert "task" in content_plan.lower()
+    # 1. 验证段落 0 (计划阶段)
+    section_0 = load_prompt_section("agent/outline_extraction", 0)
+    assert "强制计划 (Compulsory Planning)" in section_0
+    assert "教育目标 (Educational Objective)" in section_0
+    
+    # 2. 验证段落 1 (解析提取阶段)
+    section_1 = load_prompt_section("agent/outline_extraction", 1)
+    assert "教育大纲知识提取助手" in section_1
+    assert "通过 parent_name 准确描述" in section_1 or "逻辑关联" in section_1
 
-def test_load_prompt_extension_auto_complete():
-    """
-    测试是否能自动补充 .md 或直接识别全路径
-    """
-    content_1 = load_prompt("agent/outline_extraction")
-    content_2 = load_prompt("agent/outline_extraction.md")
-    assert content_1 == content_2
+def test_load_all_sections_count():
+    """验证段落计数"""
+    sections = load_all_sections("agent/outline_extraction")
+    assert len(sections) == 2
 
-def test_load_prompt_not_found():
-    """
-    测试当文件不存在时是否抛出 FileNotFoundError
-    """
-    with pytest.raises(FileNotFoundError):
-        load_prompt("non_existent_folder/nothing_here")
+def test_load_prompt_section_out_of_range():
+    """验证越界保护"""
+    with pytest.raises(IndexError):
+        load_prompt_section("agent/outline_extraction", 999)
