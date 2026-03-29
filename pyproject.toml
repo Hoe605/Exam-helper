@@ -8,7 +8,8 @@ dependencies = [
     "langchain-openai",
     "langgraph",
     "python-dotenv",
-    "pydantic"
+    "pydantic",
+    "sqlalchemy>=2.0.48",
 ]
 
 [dependency-groups]

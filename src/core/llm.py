@@ -46,11 +46,14 @@ def get_llm(
 
     logger.info(f"正在实例化模型: {model} (Base URL: {base_url})")
     
+    # 如果 kwargs 里包含 streaming，就不再硬编码，否则默认为 True
+    streaming = kwargs.pop("streaming", True)
+    
     return ChatOpenAI(
         model=model,
         api_key=api_key,
         base_url=base_url,
         temperature=temperature,
-        streaming=True,
+        streaming=streaming,
         **kwargs
     )
