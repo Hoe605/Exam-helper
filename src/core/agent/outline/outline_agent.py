@@ -44,7 +44,7 @@ def extract_nodes_node(state: OutlineState):
     parser = PydanticOutputParser(pydantic_object=OutlineExtractionResult)
     format_instructions = parser.get_format_instructions()
     
-    system_prompt_template = load_prompt("outline_extraction.md")
+    system_prompt_template = load_prompt("agent/outline_extraction.md")
     prompt = ChatPromptTemplate.from_messages([
         ("system", system_prompt_template),
         ("user", "以下是待解析的大纲原始文本段落：\n\n{document_content}")
