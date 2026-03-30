@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Link } from '@/i18n/routing';
 
 export default function BoardPage() {
   return (
@@ -8,7 +9,7 @@ export default function BoardPage() {
         这是产品的后台管理界面。目前正在建设中...
       </p>
       <Button asChild>
-        <a href="/">返回首页</a>
+        <Link href="/">返回首页</Link>
       </Button>
     </div>
   );

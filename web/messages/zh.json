@@ -1,0 +1,18 @@
+{
+  "Hero": {
+    "badge": "✨ 下一代 AI 助考助手已上线",
+    "title1": "让考试准备",
+    "title2": "从未如此轻松",
+    "desc": "ExamHelper 结合前沿 AI 技术，为您提供智能试题解析、考纲提取与备考建议，助您从容应对各类考试。",
+    "getStarted": "免费试用",
+    "viewDemo": "查看演示视频",
+    "users": "超过 5,000+ 用户正在使用"
+  },
+  "Nav": {
+    "features": "功能特性",
+    "solutions": "解决方案",
+    "faq": "常见问题",
+    "login": "登录",
+    "started": "立即开始"
+  }
+}
