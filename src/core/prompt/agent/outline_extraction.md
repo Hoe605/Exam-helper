@@ -99,7 +99,7 @@
 ## 严格的 Tool 调用示例结构参考
 你传入 `submit_chapter_extraction` 的参数，必须保持下面这样的嵌套从属关系，一旦发现平铺输出将被认定为严重系统故障,并且确保你的工具调用是完整的json，注意括号闭合：
 
-当节点没有子节点时，省略 children 字段或输出空数组
+**核心原则**：当节点没有子节点时，**必须省略** `children` 字段（不要输出空数组 `[]` 或 `null`），以保持 JSON 结构的极简。
 
 ```json
 {
@@ -112,20 +112,17 @@
             "children" : [
                 {
                     "name" : "函数的性质",
-                    "description" : "单调性、奇偶性、有界性、周期性。",
-                    "children" : []
+                    "description" : "单调性、奇偶性、有界性、周期性。"
                 }
             ]
         },       
         {
             "name" : "极限",
-            "description" : "",
-            "children" : []
+            "description" : ""
         },
         {
             "name" : "连续",
-            "description" : "",
-            "children" : []
+            "description" : ""
         }
     ]
 }
