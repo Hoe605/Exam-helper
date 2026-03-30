@@ -8,7 +8,7 @@ from src.core.llm import get_llm
 from src.core.util.prompt_loader import load_prompt_section
 from src.core.util.text_util import slice_text_by_anchors
 from src.core.tools.task_tool import edu_task_planner_tool
-from src.core.tools.db_tool import submit_outline_extraction_tool
+from src.core.tools.db_tool import submit_outline_extraction_tool, submit_chapter_extraction_tool
 from src.core.schema.outline import OutlineNode
 
 # 配置日志
@@ -22,7 +22,7 @@ class OutlineState(TypedDict):
     document_content: str
     edu_objective: str                  
     knowledge_domain: str               
-    global_context_anchor: Optional[str] 
+    global_background_content: Optional[str] 
     task_list: List[dict]               
     task_status: Dict[int, str]             
     all_extracted_nodes: List[OutlineNode] 
@@ -116,14 +116,14 @@ def planning_node(state: OutlineState):
     steps = plan_args.get("steps", [])
     objective = plan_args.get("educational_objective", "提取完整的考纲知识图谱")
     domain = plan_args.get("knowledge_domain", "学科知识")
-    anchor = plan_args.get("global_context_anchor", "")
+    background = plan_args.get("global_background_content", "")
     
     initial_status = {i: "pending" for i in range(len(steps))}
     
     return {
         "edu_objective": objective,
         "knowledge_domain": domain,
-        "global_context_anchor": anchor,
+        "global_background_content": background,
         "task_list": steps,
         "task_status": initial_status,
         "all_extracted_nodes": [],
@@ -172,7 +172,7 @@ def _process_single_task(idx, current_task, full_text, global_txt, extraction_pr
         # 每次重试都启动一个全新的、无污染的对话列表，防止 tool_calls 序列冲突导致 400 错误。
         messages = [
             SystemMessage(content=extraction_prompt_tpl),
-            HumanMessage(content=f"请通过 submit_outline_extraction 提交嵌套的知识树：\n\n{target_content}")
+            HumanMessage(content=f"请通过 submit_chapter_extraction 提交该章节的嵌套知识树：\n\n{target_content}")
         ]
         
         try:
@@ -180,9 +180,12 @@ def _process_single_task(idx, current_task, full_text, global_txt, extraction_pr
             
             # 如果成功调用工具，直接破而后立
             if response.tool_calls:
-                raw_nodes_data = response.tool_calls[0]["args"].get("nodes", [])
-                nested_objs = [OutlineNode(**n) for n in raw_nodes_data]
-                flat_nodes = flatten_nodes(nested_objs)
+                # 注意：现在 LLM 直接传参给 submit_chapter_extraction，即 args 就是属性字典
+                raw_node_data = response.tool_calls[0]["args"]
+                root_obj = OutlineNode(**raw_node_data)
+                
+                # 开始拍扁流程 (这里只传一个 root 列表)
+                flat_nodes = flatten_nodes([root_obj])
                 return idx, flat_nodes, "completed", None
                 
             # 否则记录警告并重新开始一个循环
@@ -210,11 +213,10 @@ def execution_node(state: OutlineState):
     
     # [DEBUG] print(f"\n--- [NODE: Execution] 开启并发提取，共侦测到 {len(pending_items)} 个 Pending 任务 ---")
     
-    global_anchor = state.get("global_context_anchor")
-    global_txt = slice_text_by_anchors(full_text, global_anchor, "") if global_anchor else ""
+    global_txt = state.get("global_background_content") or ""
     
     llm = get_llm(streaming=False)
-    llm_with_tools = llm.bind_tools([submit_outline_extraction_tool])
+    llm_with_tools = llm.bind_tools([submit_chapter_extraction_tool])
     extraction_prompt_tpl = load_prompt_section("agent/outline_extraction", 1)
     
     collected_nodes = []
@@ -336,7 +338,8 @@ async def run_outline_extraction_stream(content: str, outline_id: int = 1):
         "errors": [],
         "outline_id": outline_id,
         "user_feedback": None,
-        "is_plan_approved": False
+        "is_plan_approved": False,
+        "global_background_content": None
     }
     
     app = build_outline_agent()

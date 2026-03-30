@@ -139,13 +139,25 @@ def preview_outline_tool(nodes: List[OutlineNode]) -> str:
 
 
 @tool
+def submit_chapter_extraction_tool(
+    name: str = Field(description="知识点名称"),
+    description: Optional[str] = Field(None, description="内容描述或要求"),
+    children: Optional[List[OutlineNode]] = Field(default_factory=list, description="子知识点列表")
+) -> str:
+    """
+    提交当前章节解析出的嵌套知识树。这是提取任务的最终输出。
+    """
+    return "节点已接收"
+
+
+@tool
 def submit_outline_extraction_tool(
     nodes: List[OutlineNode],
     name: str = "默认大纲",
     description: str = "",
 ) -> str:
     """
-    将考纲知识点列表持久化到数据库。
+    [系统内部使用] 将所有章节合并后的完整考纲数据持久化到数据库。
     """
     db = SessionLocal()
     try:

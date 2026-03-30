@@ -15,12 +15,12 @@ class EduTaskPlan(BaseModel):
     """教育场景下的专属任务计划"""
     educational_objective: str = Field(description="本次任务的核心教育目标")
     knowledge_domain: str = Field(description="涉及的学科或知识域")
-    global_context_anchor: Optional[str] = Field(description="考纲中的全局通用说明/前言部分的文本锚点，这些内容应作为所有子任务的共有背景")
+    global_background_content: Optional[str] = Field(description="考纲中的全局通用说明/前言部分的完整文本内容（非锚点），这些内容应作为所有子任务的共有背景")
     steps: List[EduTaskStep] = Field(description="为达成教育目标所设计的执行路径")
     risk_assessment: str = Field(description="潜在教研难点或风险预判")
 
 @tool("edu_task_planner", args_schema=EduTaskPlan)
-def edu_task_planner_tool(educational_objective: str, knowledge_domain: str, steps: List[EduTaskStep], risk_assessment: str, global_context_anchor: Optional[str] = None) -> str:
+def edu_task_planner_tool(educational_objective: str, knowledge_domain: str, steps: List[EduTaskStep], risk_assessment: str, global_background_content: Optional[str] = None) -> str:
     """
     教育任务调度与规划工具。在执行如大纲解析、题目生成等任务前，必须调用本工具制定详细的教研执行计划。
     
@@ -29,11 +29,11 @@ def edu_task_planner_tool(educational_objective: str, knowledge_domain: str, ste
         knowledge_domain: 知识域/学科
         steps: 拆解后的具体教研步骤
         risk_assessment: 风险与难点预判
-        global_context_anchor: 全局通用的前言/说明文本锚点
+        global_background_content: 全局通用的前言/说明完整文本内容
     """
     print(f"\n[EDU PLAN RECEIVED] 学科: {knowledge_domain} | 目标: {educational_objective}")
-    if global_context_anchor:
-        print(f"  🌐 全局通用上下文锚点: {global_context_anchor}")
+    if global_background_content:
+        print(f"  🌐 全局通用背景内容（长度: {len(global_background_content)}）")
     for s in steps:
         print(f"  - 步骤 {s.step_id} [{s.action_type}]: {s.description} (预期产出: {s.expected_output})")
     

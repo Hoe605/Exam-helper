@@ -94,37 +94,38 @@
 `name`: "奇偶性定义" (❌ 错误：应合并到'函数的性质')
 
 ## 输出约束
-请立即通过 `submit_outline_extraction` 工具提交解析出的节点列表。不要输出任何 Markdown JSON 块或多余解释。
+请立即通过 `submit_chapter_extraction` 工具提交解析出的节点列表。不要输出任何 Markdown JSON 块或多余解释。
 
 ## 严格的 Tool 调用示例结构参考
-你传入 `submit_outline_extraction` 的参数，必须保持下面这样的嵌套从属关系，一旦发现平铺输出将被认定为严重系统故障：
+你传入 `submit_chapter_extraction` 的参数，必须保持下面这样的嵌套从属关系，一旦发现平铺输出将被认定为严重系统故障,并且确保你的工具调用是完整的json，注意括号闭合：
+
+当节点没有子节点时，省略 children 字段或输出空数组
+
 ```json
 {
-    "nodes": [
+    "name" : "函数、极限和连续",
+    "description" : "本章是微积分的基础，要求掌握函数的概念、性质、运算及极限、连续等核心概念。",
+    "children" : [
         {
-            "name" : "函数、极限和连续",
-            "desc" : "本章是微积分的基础，要求掌握函数的概念、性质、运算及极限、连续等核心概念。",
+            "name" : "函数",
+            "description" : "",
             "children" : [
                 {
-                    "name" : "函数",
-                    "desc" : "",
-                    "children" : [
-                        {
-                            "name" : "函数的性质",
-                            "desc" : "单调性、奇偶性、有界性、周期性。",
-                            "children" : null
-                        }
-                    ]
+                    "name" : "函数的性质",
+                    "description" : "单调性、奇偶性、有界性、周期性。",
+                    "children" : []
                 }
             ]
-        },
+        },       
         {
             "name" : "极限",
-            "desc" : ""
+            "description" : "",
+            "children" : []
         },
         {
             "name" : "连续",
-            "desc" : ""
+            "description" : "",
+            "children" : []
         }
     ]
 }
