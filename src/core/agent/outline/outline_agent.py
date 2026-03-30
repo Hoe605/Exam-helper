@@ -28,6 +28,9 @@ class OutlineState(TypedDict):
     all_extracted_nodes: List[OutlineNode] 
     errors: List[str]                   
     outline_id: int                     
+    user_feedback: Optional[str] # 用户对计划的反馈意见
+    is_plan_approved: bool      # 计划是否已通过审核
+
 
 
 # ==========================================
@@ -69,8 +72,16 @@ def planning_node(state: OutlineState):
     
     messages = [
         SystemMessage(content=planner_prompt),
-        HumanMessage(content=f"这是待处理的考纲全文：\n\n{content}\n\n请制定层级解析计划。")
     ]
+    
+    # 如果有用户反馈，将其作为最新的 HumanMessage 引导模型修正
+    feedback = state.get("user_feedback")
+    if feedback:
+        # 为了保持上下文，我们最好能带上之前的任务列表（这里简化处理，让 AI 根据反馈重制）
+        messages.append(HumanMessage(content=f"这是待处理的考纲全文：\n\n{content}"))
+        messages.append(HumanMessage(content=f"⚠️ 用户对之前的提取计划提出了以下反馈/要求，请根据此意见重新调整计划：\n{feedback}"))
+    else:
+        messages.append(HumanMessage(content=f"这是待处理的考纲全文：\n\n{content}\n\n请制定层级解析计划。"))
     
     # 容错：最多重试 3 次强制工具调用
     max_retries = 3
@@ -116,8 +127,35 @@ def planning_node(state: OutlineState):
         "task_list": steps,
         "task_status": initial_status,
         "all_extracted_nodes": [],
-        "errors": []
+        "errors": [],
+        "user_feedback": None, # 重置反馈
+        "is_plan_approved": False
     }
+
+def human_review_node(state: OutlineState):
+    """
+    [MANUAL CHECK] 人工审核节点。
+    在控制台环境下会阻塞等待输入；在 Web 环境下通常会配合中断(Interrupt)使用。
+    """
+    print("\n" + "🔍" * 10 + " [教研审核中心] " + "🔍" * 10)
+    print(f"目标学科: {state['knowledge_domain']}")
+    print(f"总任务数: {len(state['task_list'])}")
+    for i, task in enumerate(state['task_list']):
+        print(f"  [{i+1}] {task['description']} ({task['start_anchor']} -> {task['end_anchor']})")
+    
+    print("-" * 40)
+    user_input = input("💡 请审核以上计划 (输入 'y' 通过, 或输入修改建议): ").strip()
+    
+    if user_input.lower() == 'y':
+        return {"is_plan_approved": True, "user_feedback": None}
+    else:
+        return {"is_plan_approved": False, "user_feedback": user_input}
+
+def decide_after_review(state: OutlineState):
+    """根据审核结果决定流转方向"""
+    if state.get("is_plan_approved"):
+        return "execution"
+    return "planning"
 
 import concurrent.futures
 
@@ -254,14 +292,25 @@ def should_continue(state: OutlineState):
     return "persistence" # 当没有 pending 时，进入入库环节
 
 def build_outline_agent():
-    """构建【规划-递归提取-持久化】LangGraph 工作流"""
+    """构建【规划 -> 审核 -> 递归提取 -> 持久化】LangGraph 工作流"""
     workflow = StateGraph(OutlineState)
     workflow.add_node("planning", planning_node)
+    workflow.add_node("human_review", human_review_node)
     workflow.add_node("execution", execution_node)
     workflow.add_node("persistence", persistence_node)
     
     workflow.add_edge(START, "planning")
-    workflow.add_edge("planning", "execution")
+    workflow.add_edge("planning", "human_review")
+    
+    # 核心闭环：审核节点决定是去执行还是重修
+    workflow.add_conditional_edges(
+        "human_review", 
+        decide_after_review,
+        {
+            "execution": "execution",
+            "planning": "planning"
+        }
+    )
     
     # execution 完成单步后，通过 conditional edge 判断是继续执行还是前往入库
     workflow.add_conditional_edges("execution", should_continue)
@@ -285,7 +334,9 @@ async def run_outline_extraction_stream(content: str, outline_id: int = 1):
         "task_status": {},
         "all_extracted_nodes": [],
         "errors": [],
-        "outline_id": outline_id
+        "outline_id": outline_id,
+        "user_feedback": None,
+        "is_plan_approved": False
     }
     
     app = build_outline_agent()
