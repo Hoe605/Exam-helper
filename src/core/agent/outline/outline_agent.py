@@ -1,11 +1,13 @@
 from typing import List, Optional, TypedDict
 from pydantic import BaseModel, Field
 from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.output_parsers import PydanticOutputParser
 from langgraph.graph import StateGraph, START, END
 
 from core.llm import get_llm
 from core.util.prompt_loader import load_prompt_section
-from core.tools.task_tool import edu_task_planner_tool, EduTaskPlan
+from core.util.text_util import slice_text_by_anchors
+from core.tools.task_tool import edu_task_planner_tool
 
 # ==========================================
 # 1. 定义数据结构 (Pydantic Models)
@@ -31,17 +33,17 @@ class OutlineState(TypedDict):
     document_content: str
     
     # 规划产出 (Planner Node 填充)
-    edu_objective: str                  # 教育目标
-    knowledge_domain: str               # 学科域
-    global_context_anchor: Optional[str] # 通用描述锚点
-    task_list: List[dict]               # 待执行的物理切片计划列表
+    edu_objective: str                  
+    knowledge_domain: str               
+    global_context_anchor: Optional[str] 
+    task_list: List[dict]               
     
     # 执行进度
-    current_task_index: int             # 当前处理到第几个任务
+    current_task_index: int             
     
     # 最终业务产出
-    all_extracted_nodes: List[OutlineNode] # 汇总的所有知识点
-    errors: List[str]                   # 过程中出现的错误
+    all_extracted_nodes: List[OutlineNode] 
+    errors: List[str]                   
 
 
 # ==========================================
@@ -50,15 +52,12 @@ class OutlineState(TypedDict):
 
 def planning_node(state: OutlineState):
     """
-    负责初次审稿并制定教研解析计划
+    负责初次审稿并制定教研解析计划 (Section 0)
     """
     content = state["document_content"]
     llm = get_llm(streaming=False)
-    
-    # 绑定专门的教研规划工具
     llm_with_tools = llm.bind_tools([edu_task_planner_tool])
     
-    # 加载提示词：Section 0 (规划段)
     planner_prompt = load_prompt_section("agent/outline_extraction", 0)
     
     messages = [
@@ -69,12 +68,9 @@ def planning_node(state: OutlineState):
     print("\n--- [NODE: Planning] 正在制定任务编排计划 ---")
     response = llm_with_tools.invoke(messages)
     
-    # 解析工具调用
     if not response.tool_calls:
-        # 如果模型不听话，记录错误
         return {"errors": ["模型未能在 Planning 阶段调用 edu_task_planner_tool"]}
     
-    # 我们假设模型只调用一次工具
     plan_args = response.tool_calls[0]["args"]
     
     return {
@@ -83,26 +79,90 @@ def planning_node(state: OutlineState):
         "global_context_anchor": plan_args.get("global_context_anchor", ""),
         "task_list": plan_args.get("steps", []),
         "current_task_index": 0,
-        "all_extracted_nodes": []
+        "all_extracted_nodes": [],
+        "errors": []
     }
 
-# 后续将在此补充 execution_node 和 db_node ...
+def execution_node(state: OutlineState):
+    """
+    负责执行解析具体任务切片 (Section 1)
+    """
+    idx = state["current_task_index"]
+    task_list = state["task_list"]
+    full_text = state["document_content"]
+    
+    if idx >= len(task_list):
+        return {}
 
+    current_task = task_list[idx]
+    
+    # 1. 提取物理切片
+    # 如果有全局上下文锚点，也要把全局锚点后的文字带上？
+    # 这里我们采用更纯粹的做法：截取当前任务锚点范围，并附加 global_context
+    global_anchor = state.get("global_context_anchor")
+    global_txt = slice_text_by_anchors(full_text, global_anchor, "") if global_anchor else ""
+    slice_txt = slice_text_by_anchors(full_text, current_task.get("start_anchor"), current_task.get("end_anchor"))
+    
+    # 将全局说明附在大章节前，防止信息缺失
+    target_content = f"【全局参考信息】\n{global_txt}\n\n【本章节待解析内容】\n{slice_txt}"
+    
+    # 2. 调用业务解析 (Section 1)
+    llm = get_llm(streaming=False)
+    extraction_prompt_tpl = load_prompt_section("agent/outline_extraction", 1)
+    parser = PydanticOutputParser(pydantic_object=OutlineExtractionResult)
+    format_instructions = parser.get_format_instructions()
+    
+    messages = [
+        SystemMessage(content=extraction_prompt_tpl.format(format_instructions=format_instructions)),
+        HumanMessage(content=f"开始解析任务 [{current_task.get('description')}]:\n\n{target_content}")
+    ]
+    
+    print(f"\n--- [NODE: Execution] 正在执行任务 {idx+1}/{len(task_list)}: {current_task.get('description')} ---")
+    response = llm.invoke(messages)
+    
+    try:
+        result = parser.parse(response.content)
+        new_nodes = state["all_extracted_nodes"] + result.nodes
+        return {
+            "all_extracted_nodes": new_nodes,
+            "current_task_index": idx + 1
+        }
+    except Exception as e:
+        print(f"⚠️ 解析任务 {idx+1} 时出错: {e}")
+        return {"current_task_index": idx + 1, "errors": state["errors"] + [f"Task {idx+1} failed"]}
+
+def should_continue(state: OutlineState):
+    """
+    判断是否还有未完成的任务
+    """
+    if state.get("errors") and len(state["errors"]) > 3:
+        return END
+    
+    if state["current_task_index"] < len(state["task_list"]):
+        return "execution"
+    return END
 
 # ==========================================
 # 4. 构建 Agent 图流 (Build LangGraph)
 # ==========================================
 
 def build_outline_agent():
-    """构建【规划-执行-入库】三阶 Agent 工作流"""
     workflow = StateGraph(OutlineState)
     
-    # 添加核心节点
     workflow.add_node("planning", planning_node)
+    workflow.add_node("execution", execution_node)
     
-    # 定义流程边
     workflow.add_edge(START, "planning")
-    workflow.add_edge("planning", END)  # 当前先跑通 Planning，END 只作为临时终点
+    workflow.add_edge("planning", "execution")
+    
+    # 使用循环控制
+    workflow.add_conditional_edges(
+        "execution",
+        should_continue,
+        {
+            "execution": "execution",
+            END: END
+        }
+    )
     
     return workflow.compile()
-    
