@@ -1,41 +1,74 @@
-import json
 from typing import List, Optional
-from pydantic import BaseModel, Field
 from langchain_core.tools import tool
+from src.db.session import SessionLocal
+from src.db.models import Outline, Node
+from src.core.schema.outline import OutlineNode
 
-# 复用 Agent 中定义的数据结构或在此抽象
-class DryRunNode(BaseModel):
-    name: str
-    level: int
-    parent_name: Optional[str] = None
-    desc: Optional[str] = None
-
-@tool("db_upsert_outline_nodes")
-def db_upsert_outline_nodes_tool(outline_title: str, nodes: List[dict]) -> str:
+@tool
+def preview_outline_tool(nodes: List[OutlineNode]) -> str:
     """
-    【数据模拟入库工具】。
-    用于将解析出的结构化大纲节点持久化到数据库。
-    
-    注意：当前阶段仅执行 Dry-run 模式，会将节点层级结构打印至日志进行预览校对。
-    
-    Args:
-        outline_title: 大纲/试卷的总标题 (例如: '2026考研数学一')
-        nodes: 提取出的 OutlineNode 列表数据
+    【预览大纲】在控制台打印提取出的考纲结构，不写入数据库。
     """
-    print("\n" + "🚀" * 15)
-    print(f" [DB DRY-RUN] 正在模拟入库流程")
-    print(f" 目标大纲: {outline_title}")
-    print(f" 总节点数: {len(nodes)}")
-    print("-" * 30)
-    
-    # 模拟简单的树形层级打印
-    for i, node in enumerate(nodes, 1):
-        indent = "  " * (node.get('level', 1) - 1)
-        parent_info = f" [父节点: {node['parent_name']}]" if node.get('parent_name') else " [根节点]"
-        print(f"{indent}└─ [{node.get('level')}] {node.get('name')}{parent_info}")
-        if node.get('desc'):
-            print(f"{indent}    ℹ️ 描述: {node['desc'][:50]}..." if len(node['desc']) > 50 else f"{indent}    ℹ️ 描述: {node['desc']}")
-
+    print("\n" + "🚀" * 5 + " [大纲解析预览] " + "🚀" * 5)
+    for node in nodes:
+        node_dict = node.dict() if hasattr(node, 'dict') else node
+        level = node_dict.get('level', 1)
+        indent = "  " * (level - 1)
+        name = node_dict.get('name', 'Unknown')
+        parent = node_dict.get('parent_name', 'None')
+        print(f"{indent}└─ [{level}] {name} (P: {parent})")
     print("🚀" * 15 + "\n")
+    return f"预览完成：共 {len(nodes)} 个节点。"
+
+@tool
+def submit_outline_extraction_tool(nodes: List[OutlineNode], name: str = "默认大纲", description: str = "") -> str:
+    """
+    【真实入库】将提取出的平铺考纲知识点列表持久化到数据库。
+    全过程在一个事务中完成。
+    """
+    return persist_outline_to_db(nodes, name, description)
+
+def persist_outline_to_db(nodes: List[OutlineNode], name: str = "新提取大纲", description: str = "") -> str:
+    """
+    【原子持久化】核心逻辑。先建大纲记录，再插入所有考点，最后建立父子关联。
+    """
+    if not nodes:
+        return "提取列表为空，无需入库。"
     
-    return f"模拟入库成功：已在控制台预览 {len(nodes)} 个节点的层级映射。建议校验 parent_name 的一致性。"
+    db = SessionLocal()
+    try:
+        # 使用 begin() 开启一个自动 commit/rollback 的事务上下文
+        with db.begin():
+            # 1. 插入大纲主体
+            new_outline = Outline(name=name, desc=description)
+            db.add(new_outline)
+            db.flush()
+            
+            outline_id = new_outline.id
+            
+            # 2. 插入所有节点并映射名称到物理 ID
+            name_to_id = {}
+            for o_node in nodes:
+                db_node = Node(
+                    outline_id=outline_id,
+                    name=o_node.name, 
+                    desc=o_node.description, 
+                    level=o_node.level
+                )
+                db.add(db_node)
+                db.flush()
+                name_to_id[o_node.name] = db_node.id
+            
+            # 3. 建立父子外键关联
+            for o_node in nodes:
+                if o_node.parent_name and o_node.parent_name in name_to_id:
+                    child_id = name_to_id[o_node.name]
+                    parent_id = name_to_id[o_node.parent_name]
+                    db.query(Node).filter(Node.id == child_id).update({"f_node": parent_id})
+
+        return f"✅ 成功持久化 {len(nodes)} 个考纲节点到数据库 (新分配 Outline ID: {outline_id})。"
+        
+    except Exception as e:
+        return f"❌ 数据库写入失败（事务已回滚）: {str(e)}"
+    finally:
+        db.close()
