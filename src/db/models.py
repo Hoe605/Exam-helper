@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, JSON, Float, DateTime, SmallInteger
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, JSON, Float, DateTime, SmallInteger, func, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from .base import Base
@@ -41,16 +41,35 @@ class Node(Base):
     mappings = relationship("QuestionNodeMapping", back_populates="node")
 
 
-# ==========================================
-# 题库与关联表
-# ==========================================
+class QuestionStaging(Base):
+    """
+    题目提取缓冲区 (Staging Pool)
+    """
+    __tablename__ = "question_staging"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    q_type = Column(String(50), nullable=True)
+    context = Column(Text, nullable=False)
+    options = Column(JSON, nullable=True)
+    type = Column(String(64), nullable=True)
+    
+    status = Column(String(20), default="pending") # pending / approved / rejected / warning
+    is_warning = Column(Boolean, default=False)
+    warning_reason = Column(Text, nullable=True)
+    duplicate_of_id = Column(Integer, nullable=True, comment="疑似重复的来源ID")
+    outline_id = Column(Integer, ForeignKey("outline.id"), nullable=True, comment="物理外键ID")
+    error_msg = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=func.now())
 
 class Question(Base):
-    """题目主表 (仅存题干)"""
+    """题目主表 (存题干、题型及来源)"""
     __tablename__ = "question"
     
     id = Column(Integer, primary_key=True, autoincrement=True, comment="主键")
     context = Column(Text, nullable=False, comment="题目正文 (Markdown/Tex)")
+    options = Column(JSON, nullable=True, comment="选项内容, 如: {\"A\": \"...\", \"B\": \"...\"}")
+    q_type = Column(String(50), nullable=True, comment="题型 (单选/多选/填空/解答)")
+    outline_id = Column(Integer, ForeignKey("outline.id"), nullable=True, comment="物理外键ID")
     type = Column(String(64), nullable=True, comment="题目来源类型 (真题 / 模拟题 / AI生成)")
     
     # 关联

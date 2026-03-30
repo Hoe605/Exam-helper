@@ -42,6 +42,8 @@
 | :--- | :--- | :--- |
 | `id` | INT | 主键 |
 | `context` | TEXT | 题目正文（Markdown/Tex格式） |
+| `options` | TEXT | 选项JSON，仅选择题（如 `{"A":"...","B":"..."}` ）|
+| `q_type` | VARCHAR | 题目类型（单选、多选、填空、解答） |
 | `type` | VARCHAR | 题目来源类型（真题 / 模拟题 / AI生成） |
 
 **表 4：题目-知识点多对多关联表 (`question_node_mapping`)** - *解决综合题跨知识点问题*
