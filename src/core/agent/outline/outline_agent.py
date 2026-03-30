@@ -3,8 +3,8 @@ from pydantic import BaseModel, Field
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
 from langgraph.graph import StateGraph, START, END
-from core.llm import get_llm
-from core.util.prompt_loader import load_prompt  # 引入加载器
+from src.core.llm import get_llm
+from src.core.util.prompt_loader import load_prompt  # 引入加载器
 
 # ==========================================
 # 1. 定义数据结构 (Pydantic Models 约束输出)
