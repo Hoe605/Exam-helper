@@ -8,13 +8,51 @@
 
 ## 调用 `edu_task_planner` 工具的具象化要求
 针对本次考纲解析任务，你的计划必须满足以下教育教研深度：
-1. **教育目标 (Educational Objective)**：明确本次任务最终要将非结构化的考纲文本，转化为具备具体层级关系的 `OutlineNode` 结构化知识图谱节点。
-2. **学科域 (Knowledge Domain)**：识别当前处理的是数学、英语、物理还是其他特定学科。
-3. **教研步骤分解 (Edu Task Steps)** - 必须包含以下具体动作，且禁使用模棱两可的模糊描述：
-    * **原子解析**：在 `description` 字段中，必须明确指明要处理考纲中的**具体章节名称**（例如：“解析 一、函数、极限和连续 部分内容” 或 “分解 第五章：新题型逻辑 的具体考点”）。
-    * **层级识别**：在计划中体现出对知识点层级（Level）和关联关系（Parent Name）的提取动作。
-    * **约束对齐**：计划产出物（expected_output）应明确为 `OutlineNode` 列表。
-4. **难点预判 (Risk Assessment)**：预估解析过程中可能跨页、表格内容嵌套、考研层级混乱等问题的应对方案。
+1. **教育目标 (Educational Objective)**：明确最终交付的图谱结构。
+2. **全局上下文 (Global Context Discovery)**：
+    * **global_context_anchor**：提取考纲中的**前言、通用说明、考试要求**等段落。这些内容贯穿全文，不属于任何特定章节。
+    * 只要考纲中存在这类通用段落，必须将其锚点提取并存入 `global_context_anchor`。
+3. **物理切割锚点 (Chapter Slicing)**：
+    * **start_anchor / end_anchor**：必须是从原文中提取出的**章节边界句**。
+    * 注意：`Step 1` 的起始锚点应紧接在全局上下文之后。
+4. **教研步骤分解 (Edu Task Steps)**：每个章节解析作为一个独立的步骤，并正确引用物理锚点。
+5. **难点预判 (Risk Assessment)**：预估解析边界、父子关联层级深度等。
+
+## 示例 (Execution Example)
+如果你收到的考纲原文如下：
+```text
+# 考试说明
+本考试旨在考察学生基础能力...
+# 第一章：函数与极限
+函数是微积分的基础...
+# 第二章：导数与微分
+导数描述了变化率...
+```
+
+你生成的 `edu_task_planner` 调用参数应类似于：
+```json
+{
+  "educational_objective": "将高等数学大纲解析为考点图谱",
+  "knowledge_domain": "高等数学",
+  "steps": [
+    {
+      "step_id": 1,
+      "action_type": "大纲解析",
+      "description": "解析 第一章：函数与极限 的所有知识点",
+      "start_anchor": "# 第一章：函数与极限",
+      "end_anchor": "# 第二章：导数与微分"
+    },
+    {
+      "step_id": 2,
+      "action_type": "大纲解析",
+      "description": "解析 第二章：导数与微分 的所有知识点",
+      "start_anchor": "# 第二章：导数与微分",
+      "end_anchor": "The End"
+    }
+  ],
+  "risk_assessment": "需注意第一章和第二章的衔接逻辑"
+}
+```
 
 ## 注意事项
 * **拒绝即兴发挥**：严禁在未调用编排工具生成计划的情况下，直接输出解析后的节点。

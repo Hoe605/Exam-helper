@@ -7,27 +7,33 @@ class EduTaskStep(BaseModel):
     step_id: int = Field(description="步骤序号, 从 1 开始")
     action_type: str = Field(description="行动类型，例如：'大纲解析', '知识点打标', '题目生成', '学情分析'")
     description: str = Field(description="该步骤的具体执行逻辑。例如：'提取一元函数微分学下的所有三级考点并建立父子关联'")
-    expected_output: Optional[str] = Field(description="步骤的预期产出物，例如：'JSON格式的知识结构树', '3道带解析的微积分选择题'")
+    start_anchor: Optional[str] = Field(description="该任务涉及的文本物理起点（起始句或核心标题）")
+    end_anchor: Optional[str] = Field(description="该任务涉及的文本物理终点（结束句或下一章开始）")
+    expected_output: Optional[str] = Field(description="步骤的预期产出物，例如：'JSON格式的知识结构树'")
 
 class EduTaskPlan(BaseModel):
     """教育场景下的专属任务计划"""
-    educational_objective: str = Field(description="本次任务的核心教育目标，例如：'完善考研数学一知识图谱' 或 '针对学生薄弱点生成补救练习'")
-    knowledge_domain: str = Field(description="涉及的学科或知识域，例如：'高等数学', '英语语法'")
+    educational_objective: str = Field(description="本次任务的核心教育目标")
+    knowledge_domain: str = Field(description="涉及的学科或知识域")
+    global_context_anchor: Optional[str] = Field(description="考纲中的全局通用说明/前言部分的文本锚点，这些内容应作为所有子任务的共有背景")
     steps: List[EduTaskStep] = Field(description="为达成教育目标所设计的执行路径")
-    risk_assessment: str = Field(description="潜在教研难点或风险预判，例如：'原大纲连字符不统一，需要仔细正则匹配层级'")
+    risk_assessment: str = Field(description="潜在教研难点或风险预判")
 
 @tool("edu_task_planner", args_schema=EduTaskPlan)
-def edu_task_planner_tool(educational_objective: str, knowledge_domain: str, steps: List[EduTaskStep], risk_assessment: str) -> str:
+def edu_task_planner_tool(educational_objective: str, knowledge_domain: str, steps: List[EduTaskStep], risk_assessment: str, global_context_anchor: Optional[str] = None) -> str:
     """
-    教育任务调度与规划工具。在执行如大纲解析、题目生成、学情诊断等复杂教育任务前，必须调用本工具制定详细的教研执行计划。
+    教育任务调度与规划工具。在执行如大纲解析、题目生成等任务前，必须调用本工具制定详细的教研执行计划。
     
     Args:
         educational_objective: 核心教育目标
         knowledge_domain: 知识域/学科
         steps: 拆解后的具体教研步骤
         risk_assessment: 风险与难点预判
+        global_context_anchor: 全局通用的前言/说明文本锚点
     """
     print(f"\n[EDU PLAN RECEIVED] 学科: {knowledge_domain} | 目标: {educational_objective}")
+    if global_context_anchor:
+        print(f"  🌐 全局通用上下文锚点: {global_context_anchor}")
     for s in steps:
         print(f"  - 步骤 {s.step_id} [{s.action_type}]: {s.description} (预期产出: {s.expected_output})")
     
