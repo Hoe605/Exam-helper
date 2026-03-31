@@ -26,7 +26,7 @@ class QuestionState(TypedDict):
 # 2. 节点逻辑
 # ==========================================
 
-WINDOW_SIZE = 2500
+WINDOW_SIZE = 2000
 OVERLAP = 300
 
 
