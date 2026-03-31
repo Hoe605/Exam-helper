@@ -9,7 +9,6 @@ def _find_anchor_idx(full_text: str, anchor: str, start_pos: int = 0) -> int:
     if idx != -1: return idx
     
     # 2. 尝试正则模糊寻找 (允许中间有任意空白字符或换行)
-    # 我们将 anchor 中不连续的可打印片段拿出来进行拼装
     safe_parts = [re.escape(p) for p in re.split(r'\s+', anchor) if p]
     if not safe_parts: return -1
     

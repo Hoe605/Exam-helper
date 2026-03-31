@@ -6,7 +6,7 @@ def load_prompt(prompt_path: str) -> str:
     加载完整的提示词模板文件内容
     """
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    prompt_base_dir = os.path.abspath(os.path.join(current_dir, "..", "prompt"))
+    prompt_base_dir = os.path.abspath(os.path.join(current_dir, "..", "..", "prompt"))
     full_path = os.path.join(prompt_base_dir, prompt_path)
     
     # 自动处理常见后缀

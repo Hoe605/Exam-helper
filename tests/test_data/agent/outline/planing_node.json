@@ -1,0 +1,32 @@
+{
+    "educational_objective": "将高等数学大纲解析为知识点图谱",
+    "global_background_content": "考生应识记或领会“高等数学”中函数、极限和连续、 一元函数微分学、一元函数积分学、向量代 数与空间解析几何，多元函数微积分学的基本概念与基本理论；",
+    "knowledge_domain": "高等数学",
+    "steps": [
+        {
+            "description": "解析函数、极限和连续的知识点",
+            "end_anchor": "# 一元函数微分学及其应用",
+            "start_anchor": "# 一、函数、极限和连续"
+        },
+        {
+            "description": "解析一元函数微分学及其应用的知识点",
+            "end_anchor": "# 一元函数积分学及其应用",
+            "start_anchor": "# 二、一元函数微分学及其应用"
+        },
+        {
+            "description": "解析一元函数积分学及其应用的知识点",
+            "end_anchor": "# 向量代数与空间解析几何",
+            "start_anchor": "# 三、一元函数积分学及其应用"
+        },
+        {
+            "description": "解析向量代数与空间解析几何的知识点",
+            "end_anchor": "# 多元函数微积分",
+            "start_anchor": "# 四、向量代数与空间解析几何"
+        },
+        {
+            "description": "解析多元函数微积分的知识点",
+            "end_anchor": "The End",
+            "start_anchor": "# 五、多元函数微积分"
+        }
+    ]
+}

@@ -17,7 +17,6 @@ class OutlineNode(BaseModel):
     @model_validator(mode='before')
     @classmethod
     def set_children_default(cls, data: dict):
-        # 如果模型传了 "children": null，我们强制将它纠正为 []
         if data.get("children") is None:
             data["children"] = []
         return data

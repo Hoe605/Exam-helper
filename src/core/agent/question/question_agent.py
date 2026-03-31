@@ -5,8 +5,8 @@ from langgraph.graph import StateGraph, START, END
 from langchain_core.messages import SystemMessage, HumanMessage
 
 from src.core.llm import get_llm
-from src.core.util.prompt_loader import load_prompt_section
-from src.core.tools.db_tool import submit_question_to_staging_tool, QuestionSchema
+from src.core.utils.agent.prompt_loader import load_prompt_section
+from src.core.tools import submit_question_to_staging_tool, QuestionSchema
 
 logger = logging.getLogger(__name__)
 

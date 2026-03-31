@@ -1,15 +1,17 @@
-from .task_tool import outline_planner_tool
-from .db_tool import (
+from src.core.agent.outline.tool import (
+    outline_planner_tool,
     submit_outline_extraction_tool,
-    preview_outline_tool,
+    submit_chapter_extraction_tool
+)
+from .question.question_tool import (
     submit_question_to_staging_tool,
-    QuestionSchema,
+    QuestionSchema
 )
 
 __all__ = [
     "outline_planner_tool",
     "submit_outline_extraction_tool",
-    "preview_outline_tool",
+    "submit_chapter_extraction_tool",
     "submit_question_to_staging_tool",
     "QuestionSchema",
 ]
