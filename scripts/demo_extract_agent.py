@@ -11,23 +11,9 @@ async def demo_extract_agent():
     """
     演示题目提取 Agent (ExtractAgent) 的流式调用过程
     """
-    sample_content = """
-    # 统计学练习题
     
-    1. 在单侧检验中，若 α=0.05，则拒绝域在该侧的概率为：
-    A. 0.025
-    B. 0.05
-    C. 0.95
-    D. 0.10
-    
-    2. 下列哪个指标反映了数据的离散程度？
-    A. 均值
-    B. 中位数
-    C. 标准差
-    D. 众数
-    
-    3. 请简述什么是 P 值。
-    """
+    with open("D:\\Code\\github\\Exam-helper\\files\\试题.md", "r", encoding="utf-8") as f:
+        sample_content = f.read()
     
     print("🚀 [Demo] 启动题目提取任务...")
     print("=" * 60)

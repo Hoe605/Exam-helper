@@ -9,10 +9,39 @@ from src.db.models import QuestionStaging
 SIMILARITY_THRESHOLD = 0.6
 MIN_CONTEXT_LENGTH = 20
 
+def normalize_text(text: str) -> str:
+    """
+    为相似度计算准备的文本归一化处理。
+    去除格式符号并统一数学表示。
+    """
+    if not text:
+        return ""
+
+    # 1. 移除 Markdown/LaTeX 边界符
+    text = text.replace("$", "").replace("**", "").replace("*", "").replace("_", "")
+
+    # 2. 统一 Unicode 数学符号 (例如 ² -> ^2)
+    unicode_map = {
+        "²": "^2",
+        "³": "^3",
+        "＋": "+",
+        "－": "-",
+        "×": "*",
+        "÷": "/",
+        "＝": "=",
+    }
+    for old, new in unicode_map.items():
+        text = text.replace(old, new)
+
+    # 3. 移除文本内部所有空白字符并转小写
+    text = "".join(text.split()).lower()
+    return text
+
 def get_trigrams(text: str) -> set:
     """提取字符三元组集合。"""
     if not text:
         return set()
+    # 已经是 normalize 过的文本应无需再次 join，但为了健壮性保留
     t = "".join(text.split())
     return {t[i:i+3] for i in range(len(t) - 2)} if len(t) >= 3 else {t}
 
@@ -23,8 +52,11 @@ def jaccard_similarity(a: str, b: str) -> float:
     return len(ga & gb) / union if union > 0 else 0.0
 
 def is_similar_text(a: str, b: str, threshold: float = SIMILARITY_THRESHOLD) -> bool:
-    """判断两段文本是否"疑似重复"（包含关系 或 Jaccard 超阈值）。"""
-    return (a in b) or (b in a) or (jaccard_similarity(a, b) > threshold)
+    """判断两段文本是否"疑似重复"（归一化后的包含关系 或 Jaccard 超阈值）。"""
+    na, nb = normalize_text(a), normalize_text(b)
+    if (na in nb) or (nb in na):
+        return True
+    return jaccard_similarity(na, nb) > threshold
 
 # ==========================================
 # 核心业务逻辑：题目暂存入库
