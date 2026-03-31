@@ -26,7 +26,7 @@ def test_outline_agent_single_step_execution():
         document_content=full_text,
         edu_objective="测试单步解析",
         knowledge_domain="高等数学",
-        global_context_anchor="考生应识记或领会“高等数学”",
+        global_background_content="考生应识记或领会“高等数学”",
         task_list=[
             {
                 "step_id": 1,

@@ -19,8 +19,8 @@ class EduTaskPlan(BaseModel):
     steps: List[EduTaskStep] = Field(description="为达成教育目标所设计的执行路径")
     risk_assessment: str = Field(description="潜在教研难点或风险预判")
 
-@tool("edu_task_planner", args_schema=EduTaskPlan)
-def edu_task_planner_tool(educational_objective: str, knowledge_domain: str, steps: List[EduTaskStep], risk_assessment: str, global_background_content: Optional[str] = None) -> str:
+@tool("outline_planner", args_schema=EduTaskPlan)
+def outline_planner_tool(educational_objective: str, knowledge_domain: str, steps: List[EduTaskStep], risk_assessment: str, global_background_content: Optional[str] = None) -> str:
     """
     教育任务调度与规划工具。在执行如大纲解析、题目生成等任务前，必须调用本工具制定详细的教研执行计划。
     

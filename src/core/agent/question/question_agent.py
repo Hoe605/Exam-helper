@@ -69,7 +69,7 @@ def extractor_node(state: QuestionState):
     outline_id = state.get("outline_id")
     llm = get_llm(streaming=False)
     llm_with_tools = llm.bind_tools([submit_question_to_staging_tool])
-    prompt_tpl = load_prompt_section("agent/question_slicing", 1)
+    prompt_tpl = load_prompt_section("agent/question_slicing", 0)
 
     all_results = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool:

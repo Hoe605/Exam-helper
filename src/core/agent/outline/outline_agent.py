@@ -7,7 +7,8 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from src.core.llm import get_llm
 from src.core.util.prompt_loader import load_prompt_section
 from src.core.util.text_util import slice_text_by_anchors
-from src.core.tools.task_tool import edu_task_planner_tool
+from src.core.util.node_util import flatten_nodes, format_task_list_to_table
+from src.core.tools.task_tool import outline_planner_tool
 from src.core.tools.db_tool import submit_outline_extraction_tool, submit_chapter_extraction_tool
 from src.core.schema.outline import OutlineNode
 
@@ -34,31 +35,7 @@ class OutlineState(TypedDict):
 
 
 # ==========================================
-# 2. 递归拍扁算法 (Flattening) - 重要修复：确保 Parent 级级传递
-# ==========================================
-
-def flatten_nodes(nodes: List[OutlineNode], parent_name: Optional[str] = None, current_level: int = 1) -> List[OutlineNode]:
-    """
-    将嵌套的 OutlineNode 转换为平铺列表，并手动打标 parent_name 和 level。
-    """
-    flat = []
-    for node in nodes:
-        # 1. 设置当前节点的父级与深度信息
-        node.parent_name = parent_name
-        node.level = current_level
-        flat.append(node)
-        
-        # 2. 递归处理子孙
-        if node.children and len(node.children) > 0:
-            child_flat = flatten_nodes(node.children, parent_name=node.name, current_level=current_level + 1)
-            flat.extend(child_flat)
-            
-        # 3. 拍扁后清空此引用，保持 Pydantic 对象干净
-        node.children = []
-    return flat
-
-# ==========================================
-# 3. 定义 Nodes (节点逻辑)
+# 2. 定义 Nodes (节点逻辑)
 # ==========================================
 
 def planning_node(state: OutlineState):
@@ -67,7 +44,7 @@ def planning_node(state: OutlineState):
     """
     content = state["document_content"]
     llm = get_llm(streaming=False)
-    llm_with_tools = llm.bind_tools([edu_task_planner_tool], tool_choice="any")
+    llm_with_tools = llm.bind_tools([outline_planner_tool], tool_choice="outline_planner")
     planner_prompt = load_prompt_section("agent/outline_extraction", 0)
     
     messages = [
@@ -77,9 +54,10 @@ def planning_node(state: OutlineState):
     # 如果有用户反馈，将其作为最新的 HumanMessage 引导模型修正
     feedback = state.get("user_feedback")
     if feedback:
-        # 为了保持上下文，我们最好能带上之前的任务列表（这里简化处理，让 AI 根据反馈重制）
+        # 为了保持上下文，此时模型需要看到刚才制定的“差劲的计划”才能做修正。
+        current_plan_str = format_task_list_to_table(state.get("task_list", []))
         messages.append(HumanMessage(content=f"这是待处理的考纲全文：\n\n{content}"))
-        messages.append(HumanMessage(content=f"⚠️ 用户对之前的提取计划提出了以下反馈/要求，请根据此意见重新调整计划：\n{feedback}"))
+        messages.append(HumanMessage(content=f"你之前的计划如下：\n{current_plan_str}\n\n用户提出了以下修改建议：\n{feedback}\n\n请根据以上建议，综合原文，使用outline_planner_tool工具修正你的全部分大纲任务（Steps）。"))
     else:
         messages.append(HumanMessage(content=f"这是待处理的考纲全文：\n\n{content}\n\n请制定层级解析计划。"))
     
@@ -101,7 +79,7 @@ def planning_node(state: OutlineState):
                 response.content = "[Empty or hidden tool call attempt, retrying...]"
             # 把模型的错误输出加入对话，并强制它调用工具
             messages.append(response)
-            messages.append(HumanMessage(content="你的上一次回答没有触发 edu_task_planner_tool 工具！请必须使用指定的 JSON Schema 工具接口来返回你的计划，不要直接输出纯文本。"))
+            messages.append(HumanMessage(content="你的上一次回答没有触发工具！请必须使用指定的 JSON Schema 工具接口来返回你的计划，不要直接输出纯文本。"))
             retries += 1
             
     if not plan_args:
@@ -140,8 +118,9 @@ def human_review_node(state: OutlineState):
     print("\n" + "🔍" * 10 + " [教研审核中心] " + "🔍" * 10)
     print(f"目标学科: {state['knowledge_domain']}")
     print(f"总任务数: {len(state['task_list'])}")
-    for i, task in enumerate(state['task_list']):
-        print(f"  [{i+1}] {task['description']} ({task['start_anchor']} -> {task['end_anchor']})")
+    
+    # 使用新抽离的 Table 工具展示
+    print(format_task_list_to_table(state['task_list']))
     
     print("-" * 40)
     user_input = input("💡 请审核以上计划 (输入 'y' 通过, 或输入修改建议): ").strip()
