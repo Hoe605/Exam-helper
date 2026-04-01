@@ -5,11 +5,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# 数据库连接地址，优先从环境变量读取。默认使用 SQLite 供开发测试
-# 如果后期需要换成 PostgreSQL（推荐 PGVector），可以修改 .env 中的 DATABASE_URL
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./exam_helper.db")
+from src.config import settings
+
+# 从配置中获取数据库连接地址
+DATABASE_URL = settings.sqlalchemy_database_url
 
 # 初始化 SQLAlchemy 引擎
+# 如果是 SQLite，需要 check_same_thread 为 False
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 engine = create_engine(DATABASE_URL, connect_args=connect_args)
 
