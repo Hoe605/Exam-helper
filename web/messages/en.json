@@ -1,18 +1,103 @@
 {
   "Hero": {
-    "badge": "✨ Next-gen AI Exam Assistant is Live",
-    "title1": "Exam Preparation",
-    "title2": "Never Been Easier",
-    "desc": "ExamHelper combines cutting-edge AI technology to provide you with smart question analysis, syllabus extraction and preparation advice, helping you handle various exams with ease.",
+    "badge": "✨ Next-Gen AI Exam Assistant is Live",
+    "title1": "Make Exam Prep",
+    "title2": "Easier Than Ever",
+    "desc": "ExamHelper combines cutting-edge AI to provide smart problem solving, syllabus extraction, and study advice to help you ace any exam.",
     "getStarted": "Try for Free",
-    "viewDemo": "View Demo Video",
-    "users": "Over 5,000+ users are using it"
+    "viewDemo": "Watch Demo",
+    "users": "Trusted by 5,000+ users"
   },
   "Nav": {
     "features": "Features",
     "solutions": "Solutions",
     "faq": "FAQ",
-    "login": "Login",
+    "login": "Log in",
     "started": "Get Started"
+  },
+  "Practice": {
+    "title": "Smart Practice",
+    "sidebar": {
+      "practice": "Practice",
+      "auditQueue": "Audit Queue",
+      "staging": "Staging",
+      "outlines": "Outlines",
+      "masteryDocs": "Mastery Docs",
+      "aiLab": "AI Lab",
+      "processAll": "Process All",
+      "support": "Support",
+      "archive": "Archive"
+    },
+    "stats": {
+      "timeSpent": "Time Spent",
+      "mastery": "Mastery Level"
+    },
+    "attempts": {
+      "title": "History",
+      "minutesAgo": "{minutes}m ago",
+      "yesterday": "Yesterday",
+      "error": "Parse Error",
+      "incomplete": "Incomplete"
+    },
+    "aiDiagnostic": {
+      "title": "AI Live Diagnostic",
+      "focusScore": "Focus Score",
+      "difficulty": "Global Difficulty",
+      "hard": "Extreme",
+      "advice": "Need help? Remember, the total area under any valid PDF is 1. Does symmetry give you a hint?",
+      "question": "Does from -inf to 0 mean I only look at half the curve?",
+      "answer": "Exactly! Since the Gaussian curve is perfectly symmetric about the mean (μ=0), both halves must have equal area."
+    },
+    "chat": {
+      "placeholder": "Ask AI for help...",
+      "send": "Send"
+    },
+    "outline": {
+      "title": "Syllabus Management",
+      "desc": "Manage examination outlines and knowledge structures for all subjects. These syllabi serve as the core reference for AI-generated questions.",
+      "newOutline": "Create New Syllabus",
+      "search": "Search syllabus name...",
+      "stats": {
+        "total": "Total Syllabi",
+        "nodes": "Total Nodes",
+        "active": "Active Syllabi"
+      },
+      "card": {
+        "nodesCount": "{count} Knowledge Nodes",
+        "viewNodes": "Manage Tree",
+        "editInfo": "Edit General Info",
+        "lastUpdate": "Last Update: {time}"
+      }
+    },
+    "staging": {
+      "title": "Audit & Staging Pool",
+      "desc": "Reviewing AI-generated content for curriculum alignment.",
+      "selectOutline": "SELECT OUTLINE NODE",
+      "stats": {
+        "pending": "Pending Review",
+        "warnings": "Flagged Warnings",
+        "duplicates": "Duplicates Found",
+        "approved": "Approved Content"
+      },
+      "batch": {
+        "title": "CONTENT BATCH #492",
+        "sortBy": "Sort by",
+        "newest": "Newest"
+      },
+      "actions": {
+        "edit": "Edit",
+        "reject": "Reject",
+        "approve": "Approve",
+        "flagForReview": "Flag for Review",
+        "reGenerate": "Re-generate",
+        "loadNext": "Load Next 50 Questions",
+        "viewDuplicate": "VIEW DUPLICATE"
+      },
+      "messages": {
+        "logicFail": "AI LOGIC CHECK FAILED",
+        "duplicate": "Potential Duplicate of ID #{id}",
+        "solutionError": "Incorrect solution generated. Calculated y=5, but input requires y=4."
+      }
+    }
   }
 }

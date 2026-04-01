@@ -11,6 +11,8 @@ dependencies = [
     "pydantic",
     "sqlalchemy>=2.0.48",
     "pydantic-settings>=2.13.1",
+    "fastapi",
+    "uvicorn",
 ]
 
 [tool.uv]

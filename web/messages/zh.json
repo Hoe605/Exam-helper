@@ -14,5 +14,90 @@
     "faq": "常见问题",
     "login": "登录",
     "started": "立即开始"
+  },
+  "Practice": {
+    "title": "智能练习",
+    "sidebar": {
+      "practice": "智能练习",
+      "auditQueue": "审核队列",
+      "staging": "题目暂存",
+      "outlines": "大纲管理",
+      "masteryDocs": "掌握文档",
+      "aiLab": "AI 实验室",
+      "processAll": "全部入库",
+      "support": "帮助支持",
+      "archive": "归档"
+    },
+    "stats": {
+      "timeSpent": "本次用时",
+      "mastery": "掌握程度"
+    },
+    "attempts": {
+      "title": "历史表现",
+      "minutesAgo": "{minutes} 分钟前",
+      "yesterday": "昨天",
+      "error": "解析错误",
+      "incomplete": "未完成"
+    },
+    "aiDiagnostic": {
+      "title": "AI 实时诊断",
+      "focusScore": "专注系数",
+      "difficulty": "全站难度",
+      "hard": "极难",
+      "advice": "需要帮助？记住，任意有效 PDF 下的总面积都是 1。考虑到对称性，会有什么启发吗？",
+      "question": "从 -inf 到 0 的区间是否意味着我只需观察一半曲线？",
+      "answer": "完全正确！因为高斯曲线关于均值 (μ=0) 是完美对称的，左右两半的面积必然相等。"
+    },
+    "chat": {
+      "placeholder": "向 AI 询问解题思路...",
+      "send": "发送"
+    },
+    "outline": {
+      "title": "考试大纲管理",
+      "desc": "管理所有科目的考试大纲及其知识结构。每个大纲是 AI 生成题目的核心依据。",
+      "newOutline": "创建新大纲",
+      "search": "搜索大纲名称...",
+      "stats": {
+        "total": "总大纲数",
+        "nodes": "知识点总数",
+        "active": "激活大纲"
+      },
+      "card": {
+        "nodesCount": "{count} 个知识节点",
+        "viewNodes": "管理知识树",
+        "editInfo": "编辑基本信息",
+        "lastUpdate": "最近更新: {time}"
+      }
+    },
+    "staging": {
+      "title": "审核与暂存池",
+      "desc": "正在审查 AI 生成的内容以确保课程一致性。",
+      "selectOutline": "选择大纲节点",
+      "stats": {
+        "pending": "等待审核",
+        "warnings": "标记警告",
+        "duplicates": "发现重复",
+        "approved": "已批准内容"
+      },
+      "batch": {
+        "title": "内容批次 #492",
+        "sortBy": "排序方式",
+        "newest": "最新"
+      },
+      "actions": {
+        "edit": "编辑",
+        "reject": "拒绝",
+        "approve": "批准",
+        "flagForReview": "标记审核",
+        "reGenerate": "重新生成",
+        "loadNext": "加载后续 50 道题目",
+        "viewDuplicate": "查看重复"
+      },
+      "messages": {
+        "logicFail": "AI 逻辑校验失败",
+        "duplicate": "ID #{id} 的潜在重复项",
+        "solutionError": "生成的答案不正确。计算得出 y=5，但输入要求 y=4。"
+      }
+    }
   }
 }

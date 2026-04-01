@@ -12,7 +12,7 @@ async def demo_extract_agent():
     演示题目提取 Agent (ExtractAgent) 的流式调用过程
     """
     
-    with open("D:\\Code\\github\\Exam-helper\\files\\试题.md", "r", encoding="utf-8") as f:
+    with open("/Users/hoe/Documents/Code/github/Exam-helper/files/25真题.md", "r", encoding="utf-8") as f:
         sample_content = f.read()
     
     print("🚀 [Demo] 启动题目提取任务...")

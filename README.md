@@ -59,6 +59,17 @@ uv run pytest --deep
 uv run pytest --deep -s
 ```
 
+### 5. 启动 API 服务
+项目提供了基于 FastAPI 的 RESTful API 服务，用于管理大纲、知识点及题目同步：
+```bash
+# 模式：开发热重载
+uv run uvicorn src.services.main:app --reload
+
+# 文档访问 (Swagger UI)
+http://localhost:8000/docs
+```
+
+
 ## 项目结构
 
 ```text
@@ -67,9 +78,10 @@ uv run pytest --deep -s
 ├── src/
 │   ├── config/          # 中心化配置管理 (Pydantic Settings)
 │   ├── core/            # 核心业务逻辑 (Agent, LLM Factory)
-│   └── db/              # 数据库模型与会话管理
-│       ├── models.py    # SQLAlchemy 模型定义
-│       └── session.py   # 数据库连接与 Session 创建
+│   ├── db/              # 数据库模型与会话管理
+│   └── services/        # FastAPI Web 服务
+│       ├── main.py      # 服务启动入口 (Uvicorn)
+│       └── outline/     # 大纲及知识节点模块
 ├── tests/               # 项目测试套件
 ├── docs/                # 项目文档，包含 design.md
 ├── .env                 # 本地环境变量 (不加入 Git)
