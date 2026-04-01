@@ -1,22 +1,47 @@
+import asyncio
+import logging
 from src.core.agent.outline.util.task import format_task_list_to_md
 from src.core.agent.outline.state import OutlineState
+from src.services.outline.agent_manager import agent_manager
 
-def human_review_node(state: OutlineState) :
+logger = logging.getLogger(__name__)
+
+async def human_review_node(state: OutlineState):
     """
-    [MANUAL CHECK] 人工审核节点。
-    在控制台环境下会阻塞等待输入；在 Web 环境下通常会配合中断(Interrupt)使用。
+    [ASYNC MANUAL CHECK] Web 兼容版人工审核节点。
+    如果在命令行环境，仍然可以使用 input；
+    如果在 Web 环境（由 outline_id 标识），则通过 agent_manager 异步等待反馈。
     """
-    print("\n" + "🔍" * 10 + " [教研审核中心] " + "🔍" * 10)
-    print(f"目标学科: {state['knowledge_domain']}")
-    print(f"总任务数: {len(state['task_list'])}")
+    outline_id = state.get("outline_id")
     
-    # 使用新抽离的 Table 工具展示
-    print(format_task_list_to_md(state['task_list']))
-    
-    print("-" * 40)
-    user_input = input("💡 请审核以上计划 (输入 'y' 通过, 或输入修改建议): ").strip()
-    
-    if user_input.lower() == 'y':
+    # 构造待审阅的状态输出包
+    # 我们一定要在 wait() 之前把这个信号推进队列，否则流就被阻塞了
+    if outline_id:
+        review_packet = {
+            "step": "human_review",
+            "is_awaiting_review": True,
+            "outline_id": outline_id, # 这里一定要传，前端反馈需要引用
+            "plan": state['task_list'],
+            "node_count": len(state.get('all_extracted_nodes', [])),
+            "tasks": state.get('task_status', {})
+        }
+        await agent_manager.push_message(outline_id, review_packet)
+
+        
+        logger.info(f"Agent {outline_id} waiting for web review...")
+        event = agent_manager.get_event(outline_id)
+        await event.wait()
+        
+        user_input = agent_manager.feedbacks.get(outline_id, "y").strip().lower()
+        agent_manager.clear_feedback(outline_id)
+    else:
+
+        # 命令行环境
+        task_md = format_task_list_to_md(state['task_list'])
+        print(f"\n[Outline Planning Result]\n{task_md}")
+        user_input = input("💡 请审核以上计划 (输入 'y' 通过, 或输入修改建议): ").strip().lower()
+
+    if user_input == 'y':
         return {"is_plan_approved": True, "user_feedback": None}
     else:
         return {"is_plan_approved": False, "user_feedback": user_input}

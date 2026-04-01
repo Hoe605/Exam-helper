@@ -54,19 +54,41 @@
     },
     "outline": {
       "title": "Syllabus Management",
-      "desc": "Manage examination outlines and knowledge structures for all subjects. These syllabi serve as the core reference for AI-generated questions.",
-      "newOutline": "Create New Syllabus",
-      "search": "Search syllabus name...",
+      "desc": "Manage the list of exam syllabi and the knowledge relationship map.",
+      "search": "Search syllabus...",
+      "newOutline": "Create New",
       "stats": {
         "total": "Total Syllabi",
-        "nodes": "Total Nodes",
-        "active": "Active Syllabi"
+        "nodes": "Knowledge Nodes",
+        "active": "Active Status"
       },
       "card": {
-        "nodesCount": "{count} Knowledge Nodes",
-        "viewNodes": "Manage Tree",
-        "editInfo": "Edit General Info",
-        "lastUpdate": "Last Update: {time}"
+        "nodesCount": "{count} Nodes",
+        "lastUpdate": "Last: {time}",
+        "viewNodes": "Manage Tree"
+      },
+      "actions": {
+        "cancel": "Cancel",
+        "generate": "Start Generating",
+        "edit": "Edit",
+        "delete": "Delete"
+      },
+      "wizard": {
+        "title": "AI Intelligent Extraction",
+        "subtitle": "Define Examination Syllabus",
+        "desc": "Use our Multi-Agent engine to extract hierarchical knowledge points from raw text.",
+        "nameLabel": "Exam / Syllabus Name",
+        "namePlaceholder": "e.g. 2026 Advanced Mathematics for Graduate Entrance",
+        "contentLabel": "Syllabus Text Content",
+        "contentPlaceholder": "Paste the examination outline here...",
+        "importFile": "Import File",
+        "importPrompt": "Supports .md, .txt",
+        "processing": "Analyzing Knowledge Map",
+
+        "processingDesc": "The AI engine is currently traversing the syllabus document tree and identifying core requirements.",
+        "taskMonitor": "Agent Task Monitor",
+        "nodesFound": "Nodes Found",
+        "retry": "Retry"
       }
     },
     "staging": {

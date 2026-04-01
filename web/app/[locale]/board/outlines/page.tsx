@@ -28,6 +28,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import DashboardSidebar from "@/components/DashboardSidebar";
+import CreateOutlineWizard from "@/components/CreateOutlineWizard";
+import { motion, AnimatePresence } from "framer-motion";
+
+
 
 // Define the API base URL
 const API_BASE = "http://localhost:8000";
@@ -45,6 +49,8 @@ export default function OutlinesPage() {
   const [syllabi, setSyllabi] = useState<Outline[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+
 
   const fetchSyllabi = async () => {
     setLoading(true);
@@ -95,8 +101,30 @@ export default function OutlinesPage() {
       
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto p-12 custom-scrollbar">
+        <main className="flex-1 overflow-y-auto p-12 custom-scrollbar relative">
+          
+          <AnimatePresence>
+            {isCreating && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="absolute inset-0 p-12 bg-[#F8F9FA] z-50 overflow-hidden"
+              >
+                 <CreateOutlineWizard 
+                    onClose={() => setIsCreating(false)} 
+                    onComplete={() => {
+                      setIsCreating(false);
+                      fetchSyllabi();
+                    }} 
+                 />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <div className="max-w-7xl mx-auto flex flex-col gap-12">
+
             
             {/* Header Section */}
             <div className="flex justify-between items-end">
@@ -116,7 +144,9 @@ export default function OutlinesPage() {
                  >
                    <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                  </Button>
-                 <Button className="bg-[#000666] hover:bg-[#1A237E] text-white rounded-2xl h-14 px-8 font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl shadow-indigo-900/20 flex items-center gap-3">
+                 <Button 
+                   onClick={() => setIsCreating(true)}
+                   className="bg-[#000666] hover:bg-[#1A237E] text-white rounded-2xl h-14 px-8 font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl shadow-indigo-900/20 flex items-center gap-3">
                     <Plus className="w-4 h-4" />
                     {t('newOutline')}
                  </Button>
@@ -241,7 +271,10 @@ export default function OutlinesPage() {
                 })}
 
                 {/* Add New Empty State Card */}
-                <button className="border-4 border-dashed border-[#EDEEEF] rounded-[40px] p-10 flex flex-col items-center justify-center gap-4 group hover:border-[#1A237E]/20 hover:bg-white/50 transition-all min-h-[360px]">
+                <button 
+                  onClick={() => setIsCreating(true)}
+                  className="border-4 border-dashed border-[#EDEEEF] rounded-[40px] p-10 flex flex-col items-center justify-center gap-4 group hover:border-[#1A237E]/20 hover:bg-white/50 transition-all min-h-[360px]"
+                >
                     <div className="w-16 h-16 rounded-full bg-[#EDEEEF] flex items-center justify-center text-[#767683] group-hover:bg-[#E0E0FF] group-hover:text-[#1A237E] transition-all">
                       <Plus className="w-8 h-8" />
                     </div>
