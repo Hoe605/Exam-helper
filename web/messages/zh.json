@@ -80,6 +80,10 @@
         "confirm": "立即删除",
         "cancel": "取消操作"
       },
+      "messages": {
+        "deleteSuccess": "大纲已成功删除",
+        "deleteError": "删除大纲失败"
+      },
       "wizard": {
         "title": "AI 智能提取",
         "subtitle": "定义考试大纲",
@@ -91,7 +95,6 @@
         "importFile": "导入本地文件",
         "importPrompt": "支持 .md, .txt 格式",
         "processing": "正在分析知识图谱",
-
         "processingDesc": "AI 引擎正在遍历考纲文档树并识别核心考核要求。",
         "taskMonitor": "智能体任务监控",
         "nodesFound": "个知识点已发现",
@@ -105,12 +108,36 @@
           "modify": "提出修改建议",
           "placeholder": "如果不满意，请输入修改意见..."
         }
+      },
+      "knowledgeTree": {
+        "backToOutlines": "返回大纲列表",
+        "subtitle": "知识树",
+        "loading": "加载中...",
+        "loadingNodes": "正在构建知识图谱...",
+        "searchPlaceholder": "搜索知识节点...",
+        "stats": {
+          "total": "节点总数",
+          "roots": "根节点数",
+          "depth": "最大深度"
+        },
+        "treeTitle": "知识结构树",
+        "nodesTotal": "个节点",
+        "errorTitle": "连接失败",
+        "retry": "重试",
+        "newNode": "添加知识点",
+        "addChild": "添加子点",
+        "deleteNode": "删除该节点",
+        "deleteConfirm": "确定要删除该节点及其所属的的所有子节点吗？此操作无法撤销。",
+        "emptyTitle": "暂无知识节点",
+        "emptyDesc": "该大纲尚未生成知识树，请先运行 AI 提取流程。"
       }
     },
     "staging": {
       "title": "审核与暂存池",
+      "search": "全域检索暂存内容...",
       "desc": "正在审查 AI 生成的内容以确保课程一致性。",
       "selectOutline": "选择大纲节点",
+      "viewDuplicate": "查看重复详情",
       "stats": {
         "pending": "等待审核",
         "warnings": "标记警告",
@@ -134,7 +161,8 @@
       "messages": {
         "logicFail": "AI 逻辑校验失败",
         "duplicate": "ID #{id} 的潜在重复项",
-        "solutionError": "生成的答案不正确。计算得出 y=5，但输入要求 y=4。"
+        "solutionError": "生成的答案不正确。计算得出 y=5，但输入要求 y=4。",
+        "fetchError": "同步数据流失败，请重试。"
       }
     }
   }

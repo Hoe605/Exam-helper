@@ -79,6 +79,10 @@
         "confirm": "Delete Now",
         "cancel": "Cancel"
       },
+      "messages": {
+        "deleteSuccess": "Syllabus deleted successfully",
+        "deleteError": "Failed to delete syllabus"
+      },
       "wizard": {
         "title": "AI Intelligent Extraction",
         "subtitle": "Define Examination Syllabus",
@@ -95,6 +99,24 @@
         "taskMonitor": "Agent Task Monitor",
         "nodesFound": "Nodes Found",
         "retry": "Retry"
+      },
+      "knowledgeTree": {
+        "backToOutlines": "Back to Outlines",
+        "subtitle": "Knowledge Tree",
+        "loading": "Loading...",
+        "loadingNodes": "Building Knowledge Graph...",
+        "searchPlaceholder": "Search nodes...",
+        "stats": {
+          "total": "Total Nodes",
+          "roots": "Root Topics",
+          "depth": "Max Depth"
+        },
+        "treeTitle": "Knowledge Structure",
+        "nodesTotal": "nodes total",
+        "errorTitle": "Connection Failure",
+        "retry": "Retry",
+        "emptyTitle": "No Nodes Found",
+        "emptyDesc": "This outline has no knowledge nodes yet. Generate the tree first."
       }
     },
     "staging": {

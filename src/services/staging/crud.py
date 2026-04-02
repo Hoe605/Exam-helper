@@ -1,22 +1,45 @@
 from sqlalchemy.orm import Session
-from src.db.models import QuestionStaging
+from src.db.models import QuestionStaging, Question
 from . import schemas
 from typing import List, Optional
 
 def get_staging_questions(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(QuestionStaging).order_by(QuestionStaging.created_at.desc()).offset(skip).limit(limit).all()
+    return db.query(QuestionStaging).filter(QuestionStaging.status != "approved").order_by(QuestionStaging.created_at.desc()).offset(skip).limit(limit).all()
+
+def get_staging_item(db: Session, staging_id: int):
+    return db.query(QuestionStaging).filter(QuestionStaging.id == staging_id).first()
 
 def get_staging_by_status(db: Session, status: str):
     return db.query(QuestionStaging).filter(QuestionStaging.status == status).all()
 
 def update_staging(db: Session, staging_id: int, update: schemas.QuestionStagingUpdate):
     db_item = db.query(QuestionStaging).filter(QuestionStaging.id == staging_id).first()
-    if db_item:
-        update_data = update.model_dump(exclude_unset=True)
-        for key, value in update_data.items():
-            setattr(db_item, key, value)
-        db.commit()
-        db.refresh(db_item)
+    if not db_item:
+        return None
+    
+    # 记录原状态，判断是否正在变更为 'approved'
+    old_status = db_item.status
+    update_data = update.model_dump(exclude_unset=True)
+    
+    # 更新暂存表数据
+    for key, value in update_data.items():
+        setattr(db_item, key, value)
+    
+    # 如果状态变更为 'approved'，则同步到正式题目表
+    if db_item.status == "approved" and old_status != "approved":
+        new_q = Question(
+            context=db_item.context,
+            options=db_item.options,
+            q_type=db_item.q_type,
+            outline_id=db_item.outline_id,
+            type=db_item.type
+        )
+        db.add(new_q)
+        # 注意: 我们可以选择在这里删除暂存表项，或者保留作为审计。
+        # 这里选择保留并打状态标记，以便前端能够显示加载完成或隐藏已处理项。
+        
+    db.commit()
+    db.refresh(db_item)
     return db_item
 
 def delete_staging(db: Session, staging_id: int):
@@ -38,3 +61,38 @@ def get_staging_stats(db: Session):
         "warning": warning,
         "approved": approved
     }
+
+def resolve_duplicate(db: Session, keep_id: int, discard_id: int):
+    """
+    原子化处理重复冲突：
+    1. 保留项：存入正式 Question 表，并在暂存表标记为 approved
+    2. 丢弃项：从暂存表中物理删除
+    """
+    keep_item = db.query(QuestionStaging).filter(QuestionStaging.id == keep_id).first()
+    discard_item = db.query(QuestionStaging).filter(QuestionStaging.id == discard_id).first()
+    
+    if not keep_item or not discard_item:
+        return False
+        
+    try:
+        # 建立正式题目记录
+        new_q = Question(
+            context=keep_item.context,
+            options=keep_item.options,
+            q_type=keep_item.q_type,
+            outline_id=keep_item.outline_id,
+            type=keep_item.type
+        )
+        db.add(new_q)
+        
+        # 更新保留项状态
+        keep_item.status = "approved"
+        
+        # 删除丢弃项
+        db.delete(discard_item)
+        
+        db.commit()
+        return True
+    except Exception as e:
+        db.rollback()
+        return False

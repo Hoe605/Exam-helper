@@ -95,16 +95,31 @@ def save_questions_to_staging(questions: List[any]) -> str:
                     if is_similar_text(q.context, ex_ctx):
                         is_warning = True
                         dup_id = ex_id
-                        reason = f"相似({ex_id})"
+                        reason = f"与库内 #{ex_id} 相似"
+                        
+                        # 【双向标记】更新库内已有项的状态为 warning，提示其存在重复冲突
+                        # 注意：此处直接修改 DB 记录
+                        orig_item = db.query(QuestionStaging).filter(QuestionStaging.id == ex_id).first()
+                        if orig_item and orig_item.status != "warning":
+                            orig_item.status = "warning"
+                            orig_item.is_warning = True
+                            orig_item.warning_reason = f"发现新入库冲突项"
                         break
 
-            # 3. 批次内溯源
+            # 3. 批次内溯源 (同库内逻辑)
             if not is_warning:
                 for b_id, b_ctx in batch_seen:
                     if is_similar_text(q.context, b_ctx):
                         is_warning = True
                         dup_id = b_id
-                        reason = f"同批重复({b_id})"
+                        reason = f"与批次内 #{b_id} 相似"
+                        
+                        # 【双向标记】更新本批次内已有项
+                        orig_item = db.query(QuestionStaging).filter(QuestionStaging.id == b_id).first()
+                        if orig_item and orig_item.status != "warning":
+                            orig_item.status = "warning"
+                            orig_item.is_warning = True
+                            orig_item.warning_reason = f"发现批次内重复项"
                         break
 
             row = QuestionStaging(

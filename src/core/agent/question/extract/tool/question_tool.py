@@ -1,7 +1,7 @@
 from typing import List
 from langchain_core.tools import tool
 from ..schema.question_schema import QuestionSchema
-from src.core.services.question_service import save_questions_to_staging
+from src.core.agent.question.extract.question_service import save_questions_to_staging
 
 @tool
 def submit_question_tool(questions: List[QuestionSchema]) -> str:

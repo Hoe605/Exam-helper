@@ -3,7 +3,7 @@ from typing import Optional, Dict, Any, List
 from datetime import datetime
 
 class QuestionStagingBase(BaseModel):
-    q_type: str
+    q_type: Optional[str] = None
     context: str
     options: Optional[Dict[str, Any]] = None
     type: Optional[str] = None
@@ -25,3 +25,7 @@ class QuestionStaging(QuestionStagingBase):
     created_at: datetime
     
     model_config = ConfigDict(from_attributes=True)
+
+class DuplicateResolve(BaseModel):
+    keep_id: int
+    discard_id: int

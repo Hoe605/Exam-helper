@@ -14,16 +14,24 @@ import {
   BrainCircuit,
   Map
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Link, usePathname } from '@/i18n/routing';
+import { useQuestionStore } from "@/store/useQuestionStore";
+import { useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 export default function DashboardSidebar() {
   const t = useTranslations('Practice.sidebar');
   const pathname = usePathname();
+  const { stagingStats, fetchStagingData } = useQuestionStore();
+
+  useEffect(() => {
+    fetchStagingData();
+  }, [fetchStagingData]);
 
   const sidebarLinks = [
     { icon: BrainCircuit, label: t('practice'), href: '/board', match: '/board' },
-    { icon: ListTodo, label: t('auditQueue'), href: '/board/staging', match: '/board/staging' },
+    { icon: ListTodo, label: t('auditQueue'), href: '/board/staging', match: '/board/staging', badge: stagingStats.pending },
     { icon: Map, label: t('outlines'), href: '/board/outlines', match: '/board/outlines' },
     { icon: FileText, label: t('masteryDocs'), href: '#', match: 'docs' },
     { icon: FlaskConical, label: t('aiLab'), href: '#', match: 'ailab' },
@@ -50,14 +58,21 @@ export default function DashboardSidebar() {
             <Link
               key={idx}
               href={item.href}
-              className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 text-[10px] font-black uppercase tracking-[0.1em] ${
+              className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-300 text-[10px] font-black uppercase tracking-[0.1em] ${
                 active 
-                  ? "bg-[#E0E0FF]/50 text-[#1A237E] border-r-4 border-[#1A237E] rounded-r-none -mr-6" 
+                  ? "bg-[#E0E0FF]/50 text-[#1A237E] border-r-4 border-[#1A237E] rounded-r-none -mr-6 shadow-sm" 
                   : "text-[#767683] hover:bg-[#F8F9FA] hover:text-[#000666]"
               }`}
             >
-              <item.icon className={`w-4 h-4 ${active ? 'text-[#1A237E]' : 'opacity-60'}`} />
-              {item.label}
+              <div className="flex items-center gap-4">
+                <item.icon className={`w-4 h-4 ${active ? 'text-[#1A237E]' : 'opacity-60'}`} />
+                {item.label}
+              </div>
+              {item.badge !== undefined && item.badge > 0 && (
+                <Badge className="bg-rose-500 text-white border-none text-[8px] h-4 min-w-[20px] flex items-center justify-center rounded-full px-1.5 shadow-lg shadow-rose-900/10">
+                  {item.badge}
+                </Badge>
+              )}
             </Link>
           );
         })}
