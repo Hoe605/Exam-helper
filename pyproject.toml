@@ -13,6 +13,7 @@ dependencies = [
     "pydantic-settings>=2.13.1",
     "fastapi",
     "uvicorn",
+    "alembic>=1.18.4",
 ]
 
 [tool.uv]

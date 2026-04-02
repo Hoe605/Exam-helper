@@ -14,10 +14,15 @@ class Outline(Base):
     id = Column(Integer, primary_key=True, autoincrement=True, comment="主键")
     name = Column(String(255), nullable=False, comment="大纲名称 (如: 2026考研数学一)")
     desc = Column(Text, nullable=True, comment="大纲整体描述")
+    content = Column(Text, nullable=True, comment="大纲原文文本")
+    status = Column(String(50), default="Draft", comment="大纲状态 (Draft, Active, Archived)")
     metadata_ = Column("metadata", JSON, nullable=True, comment="元数据")
+    is_deleted = Column(Boolean, default=False, index=True, comment="软删除标记")
     
     # 关联
     nodes = relationship("Node", back_populates="outline", cascade="all, delete-orphan")
+    staging_questions = relationship("QuestionStaging", back_populates="outline_rel", cascade="all, delete-orphan")
+    questions = relationship("Question", back_populates="outline_rel", cascade="all, delete-orphan")
 
 
 class Node(Base):
@@ -38,7 +43,9 @@ class Node(Base):
     outline = relationship("Outline", back_populates="nodes")
     parent = relationship("Node", back_populates="children", remote_side=[id])
     children = relationship("Node", back_populates="parent", cascade="all, delete-orphan")
-    mappings = relationship("QuestionNodeMapping", back_populates="node")
+    mappings = relationship("QuestionNodeMapping", back_populates="node", cascade="all, delete-orphan")
+    specifications = relationship("Specification", back_populates="node", cascade="all, delete-orphan")
+    user_masteries = relationship("UserNodeMastery", back_populates="node", cascade="all, delete-orphan")
 
 
 class QuestionStaging(Base):
@@ -60,6 +67,9 @@ class QuestionStaging(Base):
     outline_id = Column(Integer, ForeignKey("outline.id"), nullable=True, comment="物理外键ID")
     error_msg = Column(Text, nullable=True)
     created_at = Column(DateTime, default=func.now())
+    
+    # 关联
+    outline_rel = relationship("Outline", back_populates="staging_questions")
 
 class Question(Base):
     """题目主表 (存题干、题型及来源)"""
@@ -73,8 +83,10 @@ class Question(Base):
     type = Column(String(64), nullable=True, comment="题目来源类型 (真题 / 模拟题 / AI生成)")
     
     # 关联
+    outline_rel = relationship("Outline", back_populates="questions")
     mappings = relationship("QuestionNodeMapping", back_populates="question", cascade="all, delete-orphan")
     answer = relationship("QuestionAnswer", back_populates="question", uselist=False, cascade="all, delete-orphan")
+    user_logs = relationship("UserActionLog", back_populates="question", cascade="all, delete-orphan")
 
 
 class QuestionNodeMapping(Base):
@@ -112,6 +124,9 @@ class Specification(Base):
     id = Column(Integer, primary_key=True, autoincrement=True, comment="主键")
     node_id = Column(Integer, ForeignKey("node.id"), nullable=False, comment="关联的核心知识点")
     prompt_rules = Column(Text, nullable=False, comment="AI出题归档规则")
+    
+    # 关联
+    node = relationship("Node", back_populates="specifications")
 
 
 class UserActionLog(Base):
@@ -127,6 +142,9 @@ class UserActionLog(Base):
     error_type = Column(JSON, nullable=True, comment="错误类型标签")
     ai_analysis = Column(Text, nullable=True, comment="AI 详细诊断说明")
     timestamp = Column(DateTime, default=datetime.utcnow, comment="做题时间")
+    
+    # 关联
+    question = relationship("Question", back_populates="user_logs")
 
 
 class UserNodeMastery(Base):
@@ -141,3 +159,6 @@ class UserNodeMastery(Base):
     total_attempts = Column(Integer, default=0, comment="历史总尝试次数")
     last_reviewed_at = Column(DateTime, nullable=True, comment="最后一次触达时间")
     next_review_at = Column(DateTime, nullable=True, comment="下次推荐复习时间")
+    
+    # 关联
+    node = relationship("Node", back_populates="user_masteries")

@@ -54,7 +54,7 @@ def planning_node(state: OutlineState) -> dict:
             "task_status": {}
         }
         
-    # [DEBUG] print(f"✅ [NODE: Planning] 成功制定了 {len(plan_args.get('steps', []))} 个切片任务。")
+    # [DEBUG] print(f" [NODE: Planning] 成功制定了 {len(plan_args.get('steps', []))} 个切片任务。")
     steps = plan_args.get("steps", [])
     objective = plan_args.get("educational_objective", "提取完整的考纲知识图谱")
     domain = plan_args.get("knowledge_domain", "学科知识")

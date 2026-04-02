@@ -29,6 +29,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import CreateOutlineWizard from "@/components/CreateOutlineWizard";
+import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 import { motion, AnimatePresence } from "framer-motion";
 
 
@@ -41,7 +42,9 @@ interface Outline {
   name: string;
   desc?: string;
   metadata?: Record<string, any>;
-  node_count?: number; // Added locally for demo
+  node_count?: number; 
+  status: string;
+  content?: string;
 }
 
 export default function OutlinesPage() {
@@ -50,6 +53,7 @@ export default function OutlinesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
 
   const fetchSyllabi = async () => {
@@ -71,28 +75,29 @@ export default function OutlinesPage() {
     fetchSyllabi();
   }, []);
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this syllabus?")) return;
+  const handleDelete = (id: number) => {
+    setDeletingId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (deletingId === null) return;
     try {
-      const resp = await fetch(`${API_BASE}/outlines/${id}`, { method: 'DELETE' });
+      const resp = await fetch(`${API_BASE}/outlines/${deletingId}`, { method: 'DELETE' });
       if (resp.ok) {
-        setSyllabi(syllabi.filter(s => s.id !== id));
+        setSyllabi(syllabi.filter(s => s.id !== deletingId));
       }
     } catch (err) {
       alert("Failed to delete syllabus");
+    } finally {
+      setDeletingId(null);
     }
   };
 
-  const getStatus = (id: number) => {
-    // Simulated status
-    const statuses = ["Active", "Draft", "Archived"];
-    return statuses[id % 3];
-  };
 
   const stats = [
     { label: t('stats.total'), value: syllabi.length.toString(), icon: Map, color: "text-[#1A237E]", bg: "bg-[#E0E0FF]/40" },
     { label: t('stats.nodes'), value: syllabi.reduce((acc, s) => acc + (s.node_count || 0), 0).toString(), icon: Network, color: "text-emerald-600", bg: "bg-emerald-50" },
-    { label: t('stats.active'), value: syllabi.filter(s => getStatus(s.id) === "Active").length.toString(), icon: CheckCircle2, color: "text-blue-600", bg: "bg-blue-50" }
+    { label: t('stats.active'), value: syllabi.filter(s => (s.status || "").toLowerCase() === "active").length.toString(), icon: CheckCircle2, color: "text-blue-600", bg: "bg-blue-50" }
   ];
 
   return (
@@ -211,7 +216,7 @@ export default function OutlinesPage() {
             {!loading && !error && (
               <div className="grid grid-cols-2 gap-8 mb-20">
                 {syllabi.map((item) => {
-                  const status = getStatus(item.id);
+                  const status = item.status || "Draft";
                   return (
                     <div key={item.id} className="bg-white rounded-[40px] p-10 shadow-2xl shadow-black/[0.03] flex flex-col gap-8 group hover:shadow-indigo-900/5 hover:-translate-y-1 transition-all border border-transparent hover:border-[#1A237E]/10 relative overflow-hidden">
                       
@@ -284,6 +289,16 @@ export default function OutlinesPage() {
             )}
           </div>
         </main>
+
+        <DeleteConfirmationModal
+          isOpen={deletingId !== null}
+          onClose={() => setDeletingId(null)}
+          onConfirm={confirmDelete}
+          title={t('deleteDialog.title')}
+          description={t('deleteDialog.desc')}
+          confirmText={t('deleteDialog.confirm')}
+          cancelText={t('deleteDialog.cancel')}
+        />
       </div>
 
       <style jsx global>{`

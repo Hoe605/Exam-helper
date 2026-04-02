@@ -40,6 +40,20 @@ uv run init-db
 ```
 *注：该命令会自动执行 `scripts/init_db.py`，并在根目录生成 `exam_helper.db`（如果使用默认配置）。*
 
+### 3.5 数据库迁移 (Alembic)
+当修改了 `src/db/models.py` 中的数据模型后，请使用 Alembic 进行平滑的结构同步：
+
+1.  **自动生成迁移脚本** (识别模型变化)：
+    ```bash
+    uv run alembic revision --autogenerate -m "描述你的修改(如：增加is_deleted字段)"
+    ```
+
+2.  **应用迁移到数据库** (实际更新表结构)：
+    ```bash
+    uv run alembic upgrade head
+    ```
+*注：生成的迁移脚本位于 `alembic/versions` 目录，务必将其提交到 Git 仓库以确保团队成员和生产环境的同步。*
+
 ### 4. 运行测试
 项目采用 `pytest` 进行分层测试：
 

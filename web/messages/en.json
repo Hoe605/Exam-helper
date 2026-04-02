@@ -73,6 +73,12 @@
         "edit": "Edit",
         "delete": "Delete"
       },
+      "deleteDialog": {
+        "title": "Delete Syllabus?",
+        "desc": "Are you absolutely sure? This will permanently delete the syllabus, all its associated nodes, and any linked staging data. This action cannot be undone.",
+        "confirm": "Delete Now",
+        "cancel": "Cancel"
+      },
       "wizard": {
         "title": "AI Intelligent Extraction",
         "subtitle": "Define Examination Syllabus",

@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from src.db.models import Outline, Node
 from src.services.outline.schemas import OutlineCreate, OutlineUpdate
 from typing import List, Optional
@@ -9,7 +9,10 @@ def get_outline(db: Session, outline_id: int):
     result = db.query(
         Outline,
         func.count(Node.id).label("node_count")
-    ).outerjoin(Node).filter(Outline.id == outline_id).group_by(Outline.id).first()
+    ).outerjoin(Node).filter(
+        Outline.id == outline_id, 
+        or_(Outline.is_deleted == False, Outline.is_deleted.is_(None))
+    ).group_by(Outline.id).first()
     
     if result:
         outline, count = result
@@ -22,7 +25,9 @@ def get_outlines(db: Session, skip: int = 0, limit: int = 100) -> List[Outline]:
     results = db.query(
         Outline,
         func.count(Node.id).label("node_count")
-    ).outerjoin(Node).group_by(Outline.id).offset(skip).limit(limit).all()
+    ).outerjoin(Node).filter(
+        or_(Outline.is_deleted == False, Outline.is_deleted.is_(None))
+    ).group_by(Outline.id).offset(skip).limit(limit).all()
     
     outlines = []
     for outline, count in results:
@@ -61,7 +66,8 @@ def update_outline(db: Session, outline_id: int, outline: OutlineUpdate):
 def delete_outline(db: Session, outline_id: int):
     db_outline = db.query(Outline).filter(Outline.id == outline_id).first()
     if db_outline:
-        db.delete(db_outline)
+        # 软删除：仅标记已删除，不执行 db.delete()
+        db_outline.is_deleted = True
         db.commit()
         return True
     return False
