@@ -27,21 +27,39 @@ def _process_single_chunk(idx, chunk_content, outline_id, prompt_tpl, llm_with_t
         return []
 
 def extraction_node(state: ExtractState):
-    """并发调用 LLM 提取所有窗口中的题目。"""
-    chunks = state["question_chunks"]
+    """原子提取节点：每次仅从待处理队列中弹出一个块进行 AI 解析。"""
+    pending = state.get("pending_chunks", [])
+    if not pending:
+        logger.info("队列已空，停止提取。")
+        return {"current_batch_results": []}
+        
+    # 取出第一个块进行处理
+    chunk_content = pending[0]
     outline_id = state.get("outline_id")
+    
     llm = get_llm(streaming=False)
     llm_with_tools = llm.bind_tools([submit_question_tool])
     prompt_tpl = load_prompt_section("agent/question_slicing", 0)
 
-    all_results = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool:
-        futures = {
-            pool.submit(_process_single_chunk, i, c, outline_id, prompt_tpl, llm_with_tools): i
-            for i, c in enumerate(chunks)
-        }
-        for f in concurrent.futures.as_completed(futures):
-            all_results.extend(f.result())
+    logger.info("启动原子提取 | 剩余队列: %d", len(pending))
+    
+    # 执行提取逻辑 (复用之前的私有处理函数逻辑)
+    messages = [
+        SystemMessage(content=prompt_tpl),
+        HumanMessage(content=f"提取如下题目：\n\n{chunk_content}")
+    ]
+    
+    batch_results = []
+    try:
+        response = llm_with_tools.invoke(messages)
+        if response.tool_calls:
+            batch_results = response.tool_calls[0]["args"].get("questions", [])
+            for q in batch_results:
+                q["outline_id"] = int(outline_id) if outline_id else None
+    except Exception as e:
+        logger.warning("当前块解析失败: %s", e)
 
-    logger.info("提取完成 | 原始题目数: %d", len(all_results))
-    return {"current_batch_results": all_results}
+    return {
+        "current_batch_results": batch_results,
+        "pending_chunks": pending[1:] # 移除已处理的块
+    }

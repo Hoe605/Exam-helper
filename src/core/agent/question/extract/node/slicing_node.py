@@ -7,14 +7,24 @@ WINDOW_SIZE = 2000
 OVERLAP = 300
 
 def slicing_node(state: ExtractState):
-    """滑动窗口切分：固定窗口 + 重叠区，防止题目被截断。"""
+    """滑动窗口切分：固定窗口 + 重叠区，初始化待处理队列。"""
     content = state["document_content"]
     chunks = []
     start = 0
     while start < len(content):
-        chunks.append(content[start:start + WINDOW_SIZE])
+        end = start + WINDOW_SIZE
+        chunks.append(content[start:end])
         start += WINDOW_SIZE - OVERLAP
         if start >= len(content):
             break
-    logger.info("切分完成 | 窗口: %d 字符 | 重叠: %d | 块数: %d", WINDOW_SIZE, OVERLAP, len(chunks))
-    return {"question_chunks": chunks}
+            
+    logger.info("切分完成 | 块数: %d", len(chunks))
+    
+    return {
+        "raw_chunks": chunks,
+        "pending_chunks": list(chunks), # 复制一份到待处理队列
+        "total_count": len(chunks),
+        "processed_count": 0,
+        "extracted_questions": [],
+        "db_stats": {"inserted": 0, "warnings": 0}
+    }

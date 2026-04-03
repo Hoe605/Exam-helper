@@ -21,6 +21,7 @@
       "practice": "智能练习",
       "auditQueue": "审核队列",
       "staging": "题目暂存",
+      "addQuestions": "新增题目",
       "outlines": "大纲管理",
       "masteryDocs": "掌握文档",
       "aiLab": "AI 实验室",
@@ -164,6 +165,29 @@
         "solutionError": "生成的答案不正确。计算得出 y=5，但输入要求 y=4。",
         "fetchError": "同步数据流失败，请重试。"
       }
+    },
+    "add": {
+      "title": "添加新题目",
+      "desc": "粘贴您的题目文档，AI 会自动识别题型并进行查重。",
+      "backToStaging": "返回审核暂存池",
+      "terminal": "AI 数据注入终端",
+      "importFile": "导入本地文件",
+      "importPrompt": "支持 .md, .txt",
+      "selectOutline": "选择目标大纲",
+      "contentLabel": "文档正文内容",
+      "contentPlaceholder": "请在此处粘贴题目原文... (支持 PDF 文本, Markdown 或 纯文本)",
+      "extract": "开始提取流水线",
+      "extracting": "正在提取...",
+      "abort": "中止任务",
+      "agentWorking": "AI 智能体正在工作",
+      "processingQueue": "处理队列中",
+      "slicer": "正在分析与分割文档",
+      "extractor": "正在利用 AI 提取题目",
+      "saver": "正在同步至数据库",
+      "batch": "当前批次: {count} 道题目",
+      "success": "提取完成",
+      "successDesc": "题目已成功导入并进入暂存池。",
+      "error": "提取失败"
     }
   }
 }

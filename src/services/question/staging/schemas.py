@@ -11,6 +11,7 @@ class QuestionStagingBase(BaseModel):
     is_warning: Optional[bool] = False
     warning_reason: Optional[str] = None
     duplicate_of_id: Optional[int] = None
+    duplicate_of_formal_id: Optional[int] = None
     outline_id: Optional[int] = None
     error_msg: Optional[str] = None
 

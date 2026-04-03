@@ -38,8 +38,23 @@ export default function DuplicateComparisonModal() {
   if (!currentQuestion) return null;
 
   const handleConfirmAction = async () => {
-    if (!currentQuestion || !duplicateOfId || !selectedId) return;
+    if (!currentQuestion || !selectedId) return;
 
+    if (dupeConfig.isFormal) {
+        // Resolve against Formal Library
+        if (selectedId === currentQuestion.id) {
+            // Keep Candidate -> Just approve candidate (the formal one stays anyway)
+            const success = await useQuestionStore.getState().updateStagingStatus(currentQuestion.id, 'approved');
+            if (success) { setConfirmingSelection(false); onClose(); }
+        } else {
+            // Keep Formal/Discard Candidate -> Delete candidate
+            const success = await deleteStagingItem(currentQuestion.id);
+            if (success) { setConfirmingSelection(false); onClose(); }
+        }
+        return;
+    }
+
+    if (!duplicateOfId) return;
     const discardId = selectedId === currentQuestion.id ? duplicateOfId : currentQuestion.id;
     
     const success = await resolveDuplicate(selectedId, discardId);
@@ -50,16 +65,22 @@ export default function DuplicateComparisonModal() {
   };
 
   const handleDiscardAll = () => {
-    if (!currentQuestion || !duplicateOfId) return;
+    if (!currentQuestion) return;
     
     openDeleteModal({
-      title: "确认全部丢弃",
-      description: "您正在舍弃当前待审项及已存在的题目，此操作不可恢复。",
+      title: dupeConfig.isFormal ? "确认丢弃待审项" : "确认全部丢弃",
+      description: dupeConfig.isFormal 
+        ? "正式库题目将保留，仅丢弃当前待审项。" 
+        : "您正在舍弃当前待审项及已存在的相似题目，此操作不可恢复。",
       onConfirm: async () => {
-          await Promise.all([
-            deleteStagingItem(currentQuestion.id),
-            deleteStagingItem(duplicateOfId)
-          ]);
+          if (dupeConfig.isFormal) {
+            await deleteStagingItem(currentQuestion.id);
+          } else if (duplicateOfId) {
+            await Promise.all([
+              deleteStagingItem(currentQuestion.id),
+              deleteStagingItem(duplicateOfId)
+            ]);
+          }
           onClose();
       }
     });
@@ -101,7 +122,9 @@ export default function DuplicateComparisonModal() {
               <div className="flex items-center justify-between px-6">
                  <div className="flex flex-col gap-1">
                     <span className={`text-[11px] font-black uppercase tracking-[0.2em] transition-colors 
-                      ${selectedId === duplicateOfId ? 'text-indigo-600' : 'text-[#767683]'}`}>已有项 (Original)</span>
+                      ${selectedId === duplicateOfId ? 'text-indigo-600' : 'text-[#767683]'}`}>
+                        {dupeConfig.isFormal ? '正式库题目 (Formal Library)' : '暂存区相似项 (Staging)'}
+                    </span>
                  </div>
                  {selectedId === duplicateOfId && (
                    <div className="bg-indigo-600 text-white p-1 rounded-full shadow-lg shadow-indigo-600/30 animate-in fade-in zoom-in duration-200">

@@ -1,3 +1,4 @@
+import logging
 import concurrent.futures
 from langchain_core.messages import SystemMessage, HumanMessage
 from src.core.llm import get_llm
@@ -9,6 +10,8 @@ from src.core.agent.outline.tool import (
 )
 from src.core.agent.outline.schema.outline import OutlineNode
 from src.core.agent.outline.state import OutlineState
+
+logger = logging.getLogger(__name__)
 
 def _process_single_task(idx , current_task, full_text, global_txt, extraction_prompt_tpl, llm_with_tools):
     """(内部方法) 独立处理单一并发任务"""
@@ -35,15 +38,20 @@ def _process_single_task(idx , current_task, full_text, global_txt, extraction_p
 
 def exe_node(state: OutlineState):
     """
-    负责执行解析具体任务切片 (Section 1) - 并发提取所有 pending 任务
+    负责执行解析具体任务切片 (Section 1) - 改为【单步执行】以支持流式进度监听
     """
     task_list = state["task_list"]
     task_status = state["task_status"].copy()
     full_text = state["document_content"]
     global_txt = state.get("global_background_content") or ""
     
-    pending_items = [(i, task_list[i]) for i, s in task_status.items() if s == "pending"]
-    if not pending_items: return {}
+    # 找到第一个待处理任务，确保取到的是 task_list 中的对象
+    pending_items = [(int(i), task_list[int(i)]) for i, status in task_status.items() if status == "pending"]
+    if not pending_items:
+        logger.info("所有大纲提取任务已完成")
+        return {}
+    
+    idx, current_task = pending_items[0]
     
     llm = get_llm(streaming=False)
     llm_with_tools = llm.bind_tools([submit_chapter_extraction_tool] , tool_choice="submit_chapter_extraction")
@@ -51,22 +59,19 @@ def exe_node(state: OutlineState):
     
     collected_roots = []
     error_logs = []
+
+    logger.info("正在执行原子提取任务: %d/%d", idx + 1, len(task_list))
     
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
-        futures = {
-            executor.submit(
-                _process_single_task, 
-                idx, task, full_text, global_txt, extraction_prompt_tpl, llm_with_tools
-            ): idx for idx, task in pending_items
-        }
-        
-        for future in concurrent.futures.as_completed(futures):
-            idx, root_obj, status, err_msg = future.result()
-            task_status[idx] = status
-            if err_msg:
-                error_logs.append(err_msg)
-            else:
-                collected_roots.append(root_obj)
+    # 执行单步任务逻辑 (复用之前的私有处理函数逻辑)
+    _, root_obj, status, err_msg = _process_single_task(
+        idx, current_task, full_text, global_txt, extraction_prompt_tpl, llm_with_tools
+    )
+    
+    task_status[idx] = status
+    if err_msg:
+        error_logs.append(err_msg)
+    elif root_obj:
+        collected_roots.append(root_obj)
     
     total_roots = state.get("all_extracted_nodes", []) + collected_roots
     current_errors = state.get("errors", []) + error_logs

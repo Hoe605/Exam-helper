@@ -72,10 +72,26 @@ async def run_outline_extraction_stream(content: str, outline_id: int = 1):
         if state_snapshot is None:
             continue
             
+        # 将任务索引映射为具体的任务描述，以便前端直接展示名称
+        task_list = state_snapshot.get("task_list", [])
+        task_status = state_snapshot.get("task_status", {})
+        display_tasks = {}
+        
+        for idx_str, status in task_status.items():
+            try:
+                idx = int(idx_str)
+                if idx < len(task_list):
+                    desc = task_list[idx].get("task_description", f"Task {idx}")
+                    display_tasks[desc] = status
+                else:
+                    display_tasks[str(idx)] = status
+            except (ValueError, TypeError):
+                display_tasks[str(idx_str)] = status
+                
         # 封装一个对用户友好的状态包
         yield {
             "step": node_name,
-            "tasks": state_snapshot.get("task_status", {}),
+            "tasks": display_tasks,
             "node_count": len(state_snapshot.get("all_extracted_nodes", [])),
             "errors": state_snapshot.get("errors", []),
             "snapshot": state_snapshot

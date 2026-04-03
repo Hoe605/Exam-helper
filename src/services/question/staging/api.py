@@ -5,7 +5,6 @@ from . import crud, schemas
 from typing import List, Dict
 
 router = APIRouter(
-    prefix="/staging",
     tags=["staging"]
 )
 
@@ -23,6 +22,24 @@ def read_staging_item(staging_id: int, db: Session = Depends(get_db)):
     if not db_item:
         raise HTTPException(status_code=404, detail="Item not found")
     return db_item
+
+@router.get("/formal/{q_id}", response_model=schemas.QuestionStaging)
+def read_formal_item(q_id: int, db: Session = Depends(get_db)):
+    db_item = crud.get_formal_item(db, q_id=q_id)
+    if not db_item:
+        raise HTTPException(status_code=404, detail="Formal item not found")
+    # Wrap formal Question into QuestionStaging schema (compatible fields)
+    from datetime import datetime
+    return schemas.QuestionStaging(
+        id=db_item.id,
+        context=db_item.context,
+        options=db_item.options,
+        q_type=db_item.q_type,
+        outline_id=db_item.outline_id,
+        type=db_item.type,
+        status="approved",
+        created_at=datetime.utcnow()
+    )
 
 @router.put("/{staging_id}", response_model=schemas.QuestionStaging)
 def update_item(staging_id: int, update: schemas.QuestionStagingUpdate, db: Session = Depends(get_db)):

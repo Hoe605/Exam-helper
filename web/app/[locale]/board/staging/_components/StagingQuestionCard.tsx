@@ -32,7 +32,7 @@ export const StagingQuestionCard = memo(function StagingQuestionCard({
              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#767683] opacity-40">{q.q_type || 'General'}</span>
           </div>
           <div className="flex gap-3">
-             {q.is_warning && q.duplicate_of_id && (
+             {q.is_warning && (q.duplicate_of_id || q.duplicate_of_formal_id) && (
                <Button 
                  onClick={() => onViewDuplicate(q)}
                  className="bg-amber-50 text-amber-600 hover:bg-amber-100 border-none rounded-xl h-11 px-6 font-black uppercase tracking-widest text-[9px] flex items-center gap-2 active:scale-95"

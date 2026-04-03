@@ -63,7 +63,8 @@ class QuestionStaging(Base):
     status = Column(String(20), default="pending") # pending / approved / rejected / warning
     is_warning = Column(Boolean, default=False)
     warning_reason = Column(Text, nullable=True)
-    duplicate_of_id = Column(Integer, nullable=True, comment="疑似重复的来源ID")
+    duplicate_of_id = Column(Integer, nullable=True, comment="疑似重复的暂存区ID")
+    duplicate_of_formal_id = Column(Integer, nullable=True, comment="疑似重复的正式库ID")
     outline_id = Column(Integer, ForeignKey("outline.id"), nullable=True, comment="物理外键ID")
     error_msg = Column(Text, nullable=True)
     created_at = Column(DateTime, default=func.now())

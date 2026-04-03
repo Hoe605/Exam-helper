@@ -9,6 +9,9 @@ def get_staging_questions(db: Session, skip: int = 0, limit: int = 100):
 def get_staging_item(db: Session, staging_id: int):
     return db.query(QuestionStaging).filter(QuestionStaging.id == staging_id).first()
 
+def get_formal_item(db: Session, q_id: int):
+    return db.query(Question).filter(Question.id == q_id).first()
+
 def get_staging_by_status(db: Session, status: str):
     return db.query(QuestionStaging).filter(QuestionStaging.status == status).all()
 
@@ -96,3 +99,32 @@ def resolve_duplicate(db: Session, keep_id: int, discard_id: int):
     except Exception as e:
         db.rollback()
         return False
+
+def approve_all_pending(db: Session) -> int:
+    """
+    一键通过所有非冲突项 (status == 'pending')
+    返回成功处理的数量
+    """
+    pending_items = db.query(QuestionStaging).filter(QuestionStaging.status == "pending", QuestionStaging.is_warning == False).all()
+    count = 0
+    
+    try:
+        for item in pending_items:
+            # 建立正式题目记录
+            new_q = Question(
+                context=item.context,
+                options=item.options,
+                q_type=item.q_type,
+                outline_id=item.outline_id,
+                type=item.type
+            )
+            db.add(new_q)
+            # 更新暂存表状态
+            item.status = "approved"
+            count += 1
+        
+        db.commit()
+        return count
+    except Exception as e:
+        db.rollback()
+        raise e

@@ -21,6 +21,7 @@
       "practice": "Practice",
       "auditQueue": "Audit Queue",
       "staging": "Staging",
+      "addQuestions": "Add Questions",
       "outlines": "Outlines",
       "masteryDocs": "Mastery Docs",
       "aiLab": "AI Lab",
@@ -148,6 +149,29 @@
         "duplicate": "Potential Duplicate of ID #{id}",
         "solutionError": "Incorrect solution generated. Calculated y=5, but input requires y=4."
       }
+    },
+    "add": {
+      "title": "Add New Questions",
+      "desc": "Paste your question document, AI will automatically recognize types and check for duplicates.",
+      "backToStaging": "Back to Staging",
+      "terminal": "AI Ingestion Terminal",
+      "importFile": "Import Local File",
+      "importPrompt": "Supports .md, .txt",
+      "selectOutline": "Select Target Outline",
+      "contentLabel": "Document Content",
+      "contentPlaceholder": "Paste your questions here... (Supports PDF, Markdown or Plain Text)",
+      "extract": "Start Extraction Pipeline",
+      "extracting": "Extracting...",
+      "abort": "Abort Task",
+      "agentWorking": "AI Agent Working",
+      "processingQueue": "Processing Queue",
+      "slicer": "Analyzing & Slicing Document",
+      "extractor": "Extracting Questions with AI",
+      "saver": "Synchronizing to Database",
+      "batch": "Current Batch: {count} questions",
+      "success": "Extraction Complete",
+      "successDesc": "Questions imported successfully to staging pool.",
+      "error": "Extraction Failed"
     }
   }
 }

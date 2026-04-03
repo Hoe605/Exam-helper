@@ -73,7 +73,12 @@ def save_questions_to_staging(questions: List[any]) -> str:
     inserted = 0
     warnings = 0
     try:
-        existing_rows = db.query(QuestionStaging.id, QuestionStaging.context).all()
+        # 1. 加载暂存区已有项
+        existing_staging_rows = db.query(QuestionStaging.id, QuestionStaging.context).all()
+        # 2. 加载正式库已有项
+        from src.db.models import Question
+        formal_rows = db.query(Question.id, Question.context).all()
+        
         batch_seen: List[Tuple[int, str]] = []
         
         # 按长度降序排列，优先处理长文本（包含关系判定更精确）
@@ -83,27 +88,38 @@ def save_questions_to_staging(questions: List[any]) -> str:
             is_warning = False
             reason = None
             dup_id = None
+            dup_formal_id = None
+            db_original_item = None
+            batch_original_item = None
 
-            # 1. 碎片检测
+            # A. 碎片检测
             if len(q.context.strip()) < MIN_CONTEXT_LENGTH:
                 is_warning = True
                 reason = "短碎块"
 
-            # 2. 库内溯源 (相似度检查)
+            # B. 正式库溯源 (最高优先级)
             if not is_warning:
-                for ex_id, ex_ctx in existing_rows:
+                for f_id, f_ctx in formal_rows:
+                    if is_similar_text(q.context, f_ctx):
+                        is_warning = True
+                        reason = f"与正式库 #{f_id} 相似"
+                        dup_formal_id = f_id
+                        break
+
+            # C. 暂存区溯源 (相似度检查)
+            if not is_warning:
+                for ex_id, ex_ctx in existing_staging_rows:
                     if is_similar_text(q.context, ex_ctx):
                         is_warning = True
                         dup_id = ex_id
                         reason = f"与库内 #{ex_id} 相似"
                         
-                        # 【双向标记】更新库内已有项的状态为 warning，提示其存在重复冲突
-                        # 注意：此处直接修改 DB 记录
-                        orig_item = db.query(QuestionStaging).filter(QuestionStaging.id == ex_id).first()
-                        if orig_item and orig_item.status != "warning":
-                            orig_item.status = "warning"
-                            orig_item.is_warning = True
-                            orig_item.warning_reason = f"发现新入库冲突项"
+                        # 【双向标记】准备更新库内已有项
+                        db_original_item = db.query(QuestionStaging).filter(QuestionStaging.id == ex_id).first()
+                        if db_original_item and db_original_item.status != "warning":
+                            db_original_item.status = "warning"
+                            db_original_item.is_warning = True
+                            db_original_item.warning_reason = f"发现新入库冲突项"
                         break
 
             # 3. 批次内溯源 (同库内逻辑)
@@ -114,12 +130,12 @@ def save_questions_to_staging(questions: List[any]) -> str:
                         dup_id = b_id
                         reason = f"与批次内 #{b_id} 相似"
                         
-                        # 【双向标记】更新本批次内已有项
-                        orig_item = db.query(QuestionStaging).filter(QuestionStaging.id == b_id).first()
-                        if orig_item and orig_item.status != "warning":
-                            orig_item.status = "warning"
-                            orig_item.is_warning = True
-                            orig_item.warning_reason = f"发现批次内重复项"
+                        # 【双向标记】准备更新本批次内已有项
+                        batch_original_item = db.query(QuestionStaging).filter(QuestionStaging.id == b_id).first()
+                        if batch_original_item and batch_original_item.status != "warning":
+                            batch_original_item.status = "warning"
+                            batch_original_item.is_warning = True
+                            batch_original_item.warning_reason = f"发现批次内重复项"
                         break
 
             row = QuestionStaging(
@@ -135,6 +151,12 @@ def save_questions_to_staging(questions: List[any]) -> str:
             )
             db.add(row)
             db.flush()
+
+            # 【核心修复】反向更新原项的 duplicate_of_id，确保两边都能点开对比
+            if db_original_item:
+                db_original_item.duplicate_of_id = row.id
+            if batch_original_item:
+                batch_original_item.duplicate_of_id = row.id
 
             batch_seen.append((row.id, q.context))
             inserted += 1

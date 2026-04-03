@@ -10,8 +10,10 @@ import {
   RefreshCcw,
   Layers,
   AlertTriangle,
-  Copy
+  Copy,
+  PlusCircle
 } from "lucide-react";
+import { Link } from '@/i18n/routing';
 import { Button } from "@/components/ui/button";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import DuplicateComparisonModal from "./DuplicateComparisonModal";
@@ -41,6 +43,7 @@ function StagingDeleteModal() {
 
 export default function StagingPage() {
   const t = useTranslations('Practice.staging');
+  const tAdd = useTranslations('Practice.add');
   const { toast } = useToast();
   
   // High-performance Selectors - NO MORE deleteModal subscription here!
@@ -116,6 +119,14 @@ export default function StagingPage() {
               >
                 <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               </Button>
+              
+              <Link href="/board/staging/add">
+                <Button variant="outline" className="rounded-2xl h-14 px-8 border-[#EDEEEF] bg-white shadow-xl shadow-black/5 font-black uppercase tracking-widest text-[10px] flex items-center gap-2 hover:bg-slate-50 transition-all">
+                   <PlusCircle className="w-4 h-4" />
+                   {tAdd('title')}
+                </Button>
+              </Link>
+
               <Button className="bg-[#1A237E] hover:bg-[#000666] text-white rounded-2xl h-14 px-8 font-black uppercase tracking-widest text-[10px] shadow-xl shadow-indigo-900/10">
                 Process All (In Progress)
               </Button>

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.services.outline.api import router as outline_router
 from src.services.outline.node.api import router as node_router
-from src.services.staging.api import router as staging_router
+from src.services.question.api import router as question_router
 
 app = FastAPI(
     title="ExamHelper API Services",
@@ -22,7 +22,7 @@ app.add_middleware(
 # 注册各个模块的路由
 app.include_router(outline_router)
 app.include_router(node_router)
-app.include_router(staging_router)
+app.include_router(question_router)
 
 @app.get("/")
 def root():
