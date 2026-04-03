@@ -127,8 +127,18 @@ export default function StagingPage() {
                 </Button>
               </Link>
 
-              <Button className="bg-[#1A237E] hover:bg-[#000666] text-white rounded-2xl h-14 px-8 font-black uppercase tracking-widest text-[10px] shadow-xl shadow-indigo-900/10">
-                Process All (In Progress)
+              <Button 
+                onClick={async () => {
+                  const success = await useQuestionStore.getState().approveAllPending();
+                  if (success) {
+                    toast({ title: "Success", description: "All non-conflicting items approved." });
+                  } else {
+                    toast({ title: "Error", description: "Batch approval failed.", variant: "destructive" });
+                  }
+                }}
+                className="bg-[#1A237E] hover:bg-[#000666] text-white rounded-2xl h-14 px-8 font-black uppercase tracking-widest text-[10px] shadow-xl shadow-indigo-900/10"
+              >
+                一键通过所有非冲突项
               </Button>
            </div>
         </div>

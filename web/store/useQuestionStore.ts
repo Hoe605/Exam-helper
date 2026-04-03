@@ -67,6 +67,7 @@ interface QuestionState {
   
   // Duplicate Resolution
   resolveDuplicate: (keepId: number, discardId: number) => Promise<boolean>;
+  approveAllPending: () => Promise<boolean>;
 }
 
 const API_BASE = "http://localhost:8000";
@@ -237,6 +238,17 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
       });
       if (!resp.ok) return false;
 
+      await get().fetchStagingData();
+      return true;
+    } catch (err) {
+      return false;
+    }
+  },
+
+  approveAllPending: async () => {
+    try {
+      const resp = await fetch(`${API_BASE}/question/staging/approve-all`, { method: 'POST' });
+      if (!resp.ok) return false;
       await get().fetchStagingData();
       return true;
     } catch (err) {

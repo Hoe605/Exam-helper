@@ -61,3 +61,8 @@ def delete_item(staging_id: int, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(status_code=404, detail="Item not found")
     return {"message": "Item deleted successfully"}
+
+@router.post("/approve-all")
+def approve_all(db: Session = Depends(get_db)):
+    count = crud.approve_all_pending(db)
+    return {"message": f"Successfully approved {count} items", "count": count}

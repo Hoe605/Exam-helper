@@ -38,12 +38,12 @@ def update_staging(db: Session, staging_id: int, update: schemas.QuestionStaging
             type=db_item.type
         )
         db.add(new_q)
-        # 注意: 我们可以选择在这里删除暂存表项，或者保留作为审计。
-        # 这里选择保留并打状态标记，以便前端能够显示加载完成或隐藏已处理项。
+        # 一旦成功入库，直接物理删除暂存表项，保持暂存池清爽
+        db.delete(db_item)
         
     db.commit()
-    db.refresh(db_item)
-    return db_item
+    # 注意：如果被删了，db.refresh(db_item) 会报错，这里逻辑要微调
+    return {"id": staging_id, "status": "approved"}
 
 def delete_staging(db: Session, staging_id: int):
     db_item = db.query(QuestionStaging).filter(QuestionStaging.id == staging_id).first()
@@ -88,8 +88,8 @@ def resolve_duplicate(db: Session, keep_id: int, discard_id: int):
         )
         db.add(new_q)
         
-        # 更新保留项状态
-        keep_item.status = "approved"
+        # 删除保留项（因为它已经进正式表了）
+        db.delete(keep_item)
         
         # 删除丢弃项
         db.delete(discard_item)
@@ -119,8 +119,8 @@ def approve_all_pending(db: Session) -> int:
                 type=item.type
             )
             db.add(new_q)
-            # 更新暂存表状态
-            item.status = "approved"
+            # 物理删除已通过的项
+            db.delete(item)
             count += 1
         
         db.commit()
