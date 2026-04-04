@@ -23,27 +23,43 @@ import { useState, useEffect, useCallback } from 'react';
 import { outlineService, Outline } from '@/services/outlineService';
 import { nodeService, KnowledgeNode } from '@/services/nodeService';
 import { practiceService } from '@/services/practiceService';
+import { usePracticeStore } from '@/store/usePracticeStore';
 import SmartContent from '@/components/SmartContent';
+
 
 export default function BoardPage() {
   const t = useTranslations('Practice');
   
-  // Selection States
+  // Persisted States from Zustand
+  const { 
+    selectedOutline, setSelectedOutline,
+    selectedNode, setSelectedNode,
+    difficulty, setDifficulty,
+    qType, setQType,
+    generatedContent, setGeneratedContent
+  } = usePracticeStore();
+  
+  // Local UI States
   const [outlines, setOutlines] = useState<Outline[]>([]);
   const [nodes, setNodes] = useState<KnowledgeNode[]>([]);
-  const [selectedOutline, setSelectedOutline] = useState<number | null>(null);
-  const [selectedNode, setSelectedNode] = useState<number | null>(null);
-  
-  // Generation States
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedContent, setGeneratedContent] = useState<string>('');
   const [loadingSelection, setLoadingSelection] = useState(false);
+  const [hasHydrated, setHasHydrated] = useState(false);
+
+  // Handle Hydration mismatch for persisted store
+  useEffect(() => {
+    setHasHydrated(true);
+  }, []);
 
   // Fetch initial outlines
   useEffect(() => {
     const fetch = async () => {
-       const data = await outlineService.getOutlines();
-       setOutlines(data);
+       try {
+         const data = await outlineService.getOutlines();
+         setOutlines(data);
+       } catch (err) {
+         console.error("Failed to fetch outlines:", err);
+       }
     };
     fetch();
   }, []);
@@ -58,13 +74,14 @@ export default function BoardPage() {
       setLoadingSelection(true);
       try {
         const data = await nodeService.getNodesByOutline(selectedOutline);
-        // Flatten nodes for simple selection in this practice view
         const flatten = (items: KnowledgeNode[]): KnowledgeNode[] => {
           return items.reduce((acc: KnowledgeNode[], item) => {
             return acc.concat([item], flatten(item.children || []));
           }, []);
         };
         setNodes(flatten(data));
+      } catch (err) {
+        console.error("Failed to fetch nodes:", err);
       } finally {
         setLoadingSelection(false);
       }
@@ -76,25 +93,33 @@ export default function BoardPage() {
     if (!selectedNode) return;
     
     setIsGenerating(true);
-    setGeneratedContent('');
+    setGeneratedContent(''); 
     
     try {
-      const reader = await practiceService.generatePracticeStream(selectedNode);
+      const reader = await practiceService.generatePracticeStream(selectedNode, difficulty, qType);
       const decoder = new TextDecoder();
       
+      let fullContent = '';
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         const chunk = decoder.decode(value);
-        setGeneratedContent(prev => prev + chunk);
+        fullContent += chunk;
+        setGeneratedContent(fullContent);
       }
     } catch (err) {
-      console.error(err);
-      setGeneratedContent(prev => prev + '\n[Error during generation]');
+      console.error("Generation error:", err);
+      setGeneratedContent(generatedContent + '\n[Error during generation]');
+
     } finally {
       setIsGenerating(false);
     }
-  }, [selectedNode]);
+  }, [selectedNode, difficulty, qType, setGeneratedContent]);
+
+  if (!hasHydrated) return null;
+
+
+
 
   return (
     <div className="flex h-screen bg-[#F8F9FA] text-[#191C1D] overflow-hidden">
@@ -120,9 +145,9 @@ export default function BoardPage() {
         </header>
 
         {/* Smart Generation Config */}
-        <section className="bg-white rounded-[40px] p-10 border border-[#EDEEEF] shadow-2xl shadow-black/[0.02] max-w-5xl flex flex-col gap-8">
-           <div className="flex items-center gap-10">
-              <div className="flex-1 flex flex-col gap-3">
+        <section className="bg-white rounded-[40px] p-10 border border-[#EDEEEF] shadow-2xl shadow-black/[0.02] max-w-5xl flex flex-col gap-10">
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+              <div className="flex flex-col gap-3">
                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[#767683] pl-2">1. 选择科目/大纲</label>
                  <div className="relative">
                     <Library className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#767683]" />
@@ -137,7 +162,7 @@ export default function BoardPage() {
                  </div>
               </div>
 
-              <div className="flex-1 flex flex-col gap-3">
+              <div className="flex flex-col gap-3">
                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[#767683] pl-2">2. 指定知识点</label>
                  <div className="relative">
                     <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#767683]" />
@@ -156,19 +181,61 @@ export default function BoardPage() {
                     </select>
                  </div>
               </div>
+           </div>
 
-              <div className="pt-7">
-                 <Button 
-                   onClick={handleGenerate}
-                   disabled={!selectedNode || isGenerating}
-                   className="h-14 px-10 rounded-2xl bg-[#000666] hover:bg-[#1A237E] text-white font-black uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-indigo-900/20 active:scale-95 transition-all group"
-                 >
-                    {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2 group-hover:rotate-180 transition-transform duration-500" />}
-                    {isGenerating ? 'AI 生成中...' : '开始生成题目'}
-                 </Button>
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 border-t border-[#F8F9FA] pt-10">
+              <div className="flex flex-col gap-4">
+                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[#767683] pl-2">3. 训练难度</label>
+                 <div className="flex gap-2 bg-[#F8F9FA] p-1.5 rounded-2xl">
+                    {['简单', '中等', '困难'].map((lv) => (
+                      <button
+                        key={lv}
+                        onClick={() => setDifficulty(lv)}
+                        className={`flex-1 py-3 rounded-xl text-xs font-black transition-all ${
+                          difficulty === lv 
+                            ? 'bg-white text-[#000666] shadow-sm scale-[1.02]' 
+                            : 'text-[#767683] hover:text-[#000666] hover:bg-white/50'
+                        }`}
+                      >
+                        {lv}
+                      </button>
+                    ))}
+                 </div>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[#767683] pl-2">4. 题目偏好</label>
+                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                    {['单选题', '多选题', '填空题', '解答题'].map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => setQType(type)}
+                        className={`py-3 rounded-xl text-[10px] font-black transition-all border ${
+                          qType === type 
+                            ? 'bg-[#000666] text-white border-transparent' 
+                            : 'bg-transparent text-[#767683] border-[#EDEEEF] hover:border-indigo-200'
+                        }`}
+                      >
+                        {type.replace('题', '')}
+                      </button>
+                    ))}
+                 </div>
               </div>
            </div>
+
+           <div className="flex justify-center mt-2">
+              <Button 
+                onClick={handleGenerate}
+                disabled={!selectedNode || isGenerating}
+                className="h-16 px-16 rounded-[2rem] bg-[#000666] hover:bg-[#1A237E] text-white font-black uppercase tracking-[0.2em] text-[11px] shadow-2xl shadow-indigo-900/30 active:scale-95 transition-all group overflow-hidden relative"
+              >
+                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                 {isGenerating ? <Loader2 className="w-4 h-4 animate-spin mr-3" /> : <RefreshCw className="w-4 h-4 mr-3 group-hover:rotate-180 transition-transform duration-500" />}
+                 {isGenerating ? '正在构建训练环境...' : '立即生成高质量题目'}
+              </Button>
+           </div>
         </section>
+
 
         {/* Problem Display Area */}
         <section className={`transition-all duration-700 max-w-5xl ${generatedContent || isGenerating ? 'opacity-100 translate-y-0' : 'opacity-20 translate-y-4'}`}>

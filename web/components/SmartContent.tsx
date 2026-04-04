@@ -3,6 +3,8 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import { Badge } from "@/components/ui/badge";
+import { Brain } from "lucide-react";
+
 
 interface SmartContentProps {
   content: string;
@@ -16,17 +18,28 @@ interface SmartContentProps {
 function parseSmartTags(content: string) {
   const result = {
     question: '',
+    thinking: '',
     options: [] as string[],
     tags: [] as string[],
     remains: content
+
   };
 
-  // 提取 question
-  const questionMatch = content.match(/<question>([\s\S]*?)<\/question>/);
+  // 提取 question (支持未闭合)
+  const questionMatch = content.match(/<question>([\s\S]*?)(?:<\/question>|$)/);
   if (questionMatch) {
     result.question = questionMatch[1].trim();
     result.remains = result.remains.replace(questionMatch[0], '');
   }
+
+  // 提取 thinking (支持未闭合重点！用于流式生成)
+  const thinkingMatch = content.match(/<thinking>([\s\S]*?)(?:<\/thinking>|$)/);
+  if (thinkingMatch) {
+    result.thinking = thinkingMatch[1].trim();
+    result.remains = result.remains.replace(thinkingMatch[0], '');
+  }
+
+
 
   // 提取 options
   const optionMatches = content.matchAll(/<option>([\s\S]*?)<\/option>/g);
@@ -52,7 +65,8 @@ function parseSmartTags(content: string) {
 
 export default function SmartContent({ content, className = "" }: SmartContentProps) {
   const parsed = parseSmartTags(content);
-  const hasTags = parsed.question || parsed.options.length > 0 || parsed.tags.length > 0;
+  const hasTags = !!(parsed.question || parsed.thinking || parsed.options.length > 0 || parsed.tags.length > 0);
+
 
   if (!hasTags) {
      return (
@@ -66,7 +80,23 @@ export default function SmartContent({ content, className = "" }: SmartContentPr
 
   return (
     <div className={`flex flex-col gap-8 ${className} smart-content`}>
+      {/* Reasoning (Thinking) */}
+      {parsed.thinking && (
+        <div className="bg-indigo-50/40 rounded-[30px] p-8 border border-indigo-100/30">
+           <div className="flex items-center gap-2 mb-4 text-indigo-600/60 font-black text-[10px] uppercase tracking-[0.2em]">
+              <Brain className="w-4 h-4" />
+              Reasoning Logic
+           </div>
+           <div className="prose prose-indigo prose-sm text-indigo-900/40 font-medium">
+              <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+                 {parsed.thinking}
+              </ReactMarkdown>
+           </div>
+        </div>
+      )}
+
       {/* Question Text */}
+
       {parsed.question && (
         <div className="text-2xl font-bold leading-relaxed text-[#000666]">
           <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
