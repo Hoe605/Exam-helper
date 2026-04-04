@@ -25,18 +25,39 @@ GENERATE_SYSTEM_PROMPT = """
 # 示例参考 (非选择题)
 <question>请简述...的原理。</question>
 <tag>知识点1</tag>
+
+## 注意
+- 在出题的时候，避免直接在题干说这道题考察的知识点和运用的解题方法
 """
 
 async def generate_node(state: GenerateState):
     """
     题目生成节点：负责调用模型生成符合规范的题目内容。
     """
-    llm = get_llm(temperature=0.7) # 这里的 Streaming=True 默认已在 get_llm 开启
+    print(f"[DEBUG]: {state['node_md']}")
+    llm = get_llm(temperature=0.7)
     
-    prompt = f"{GENERATE_SYSTEM_PROMPT}\n\n# 待处理文档内容如下:\n{state['node_md']}\n\n请开始生成题目："
+    difficulty = state.get("difficulty", "中等")
+    q_type = state.get("q_type", "单选题")
     
-    # 因为 LangGraph 内部可能只是普通调用 invoke
-    # 但如果我们在 Service 里使用 astream_events，这里只需要能返回内容即可
+    prompt = f"""
+{GENERATE_SYSTEM_PROMPT}
+
+# 题目要求
+- **题目类型**: {q_type}
+- **难度等级**: {difficulty}
+
+# 出题指南
+- **简单**: 考查基础概念、性质或直接应用。
+- **中等**: 涉及知识点的基础综合，或有常见的易错点。
+- **困难**: 涉及深度应用、多步推导或跨知识点的高度概括。
+- **输出标签**: 请严格遵守 xml 标签规范（<question>, <option>, <tag>）。如果是填空或解答，请不要生成 <option>。
+
+# 待处理文档内容如下:
+{state['node_md']}
+
+请开始生成题目：
+"""
     response = await llm.ainvoke(prompt)
     
     return {

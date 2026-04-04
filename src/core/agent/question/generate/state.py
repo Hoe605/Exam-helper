@@ -10,8 +10,11 @@ class GenerateState(TypedDict):
     # 生成后的完整文本（流式输出也会最后存在这里）
     generated_content: Optional[str]
     
-    # 可选：题目类型偏好 (单选, 填空...)
+    # 题目类型偏好 (单选题, 多选题, 填空题, 解答题)
     q_type: Optional[str]
+    
+    # 难度设置 (简单, 中等, 困难)
+    difficulty: Optional[str]
     
     # 错误记录
     errors: List[str]
