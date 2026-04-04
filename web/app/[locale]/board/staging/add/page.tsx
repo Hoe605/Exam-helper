@@ -24,11 +24,8 @@ import DashboardSidebar from "@/components/DashboardSidebar";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from '@/i18n/routing';
 
-interface Outline {
-  id: number;
-  name: string;
-  desc: string;
-}
+import { outlineService, Outline } from '@/services/outlineService';
+import { questionService } from '@/services/questionService';
 
 interface StepStatus {
   step: string;
@@ -37,6 +34,7 @@ interface StepStatus {
   isProcessing: boolean;
   isCompleted: boolean;
 }
+
 
 export default function QuestionAddPage() {
   const t = useTranslations('Practice.add');
@@ -61,12 +59,9 @@ export default function QuestionAddPage() {
     // Fetch outlines for selection
     const fetchOutlines = async () => {
       try {
-        const resp = await fetch('http://localhost:8000/outlines/');
-        if (resp.ok) {
-          const data = await resp.json();
-          setOutlines(data);
-          if (data.length > 0) setSelectedOutlineId(data[0].id);
-        }
+        const data = await outlineService.getOutlines();
+        setOutlines(data);
+        if (data.length > 0) setSelectedOutlineId(data[0].id);
       } catch (err) {
         console.error("Failed to fetch outlines", err);
       }
@@ -106,15 +101,7 @@ export default function QuestionAddPage() {
     setSteps(prev => prev.map(s => ({ ...s, isProcessing: false, isCompleted: false, count: 0 })));
 
     try {
-      const response = await fetch('http://localhost:8000/question/agent/extract', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content, outline_id: selectedOutlineId })
-      });
-
-      if (!response.body) throw new Error("No response body");
-
-      const reader = response.body.getReader();
+      const reader = await questionService.extractQuestions({ content, outline_id: selectedOutlineId });
       const decoder = new TextDecoder();
 
       while (true) {
@@ -188,6 +175,7 @@ export default function QuestionAddPage() {
     }
   };
 
+
   return (
     <div className="flex h-screen bg-[#F8F9FA] text-[#191C1D] overflow-hidden">
       <DashboardSidebar />
@@ -238,7 +226,7 @@ export default function QuestionAddPage() {
                  {outlines
                    .filter(o => 
                       o.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                      o.desc.toLowerCase().includes(searchQuery.toLowerCase())
+                      (o.desc && o.desc.toLowerCase().includes(searchQuery.toLowerCase()))
                    )
                    .map((o) => (
                    <div 

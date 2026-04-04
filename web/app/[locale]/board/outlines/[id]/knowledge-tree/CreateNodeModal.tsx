@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { KnowledgeNode } from './types';
+import { nodeService, KnowledgeNode } from '@/services/nodeService';
 
 interface CreateNodeModalProps {
   isOpen: boolean;
@@ -24,8 +24,6 @@ interface CreateNodeModalProps {
   parentLevel: number;
   onSuccess: (newNode: KnowledgeNode) => void;
 }
-
-const API_BASE = "http://localhost:8000";
 
 export default function CreateNodeModal({ 
   isOpen, 
@@ -46,21 +44,14 @@ export default function CreateNodeModal({
     
     setLoading(true);
     try {
-      const resp = await fetch(`${API_BASE}/nodes/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          outline_id: outlineId,
-          f_node: parentId,
-          name, 
-          desc,
-          level: parentLevel + 1
-        })
+      const created = await nodeService.createNode({
+        outline_id: outlineId,
+        f_node: parentId,
+        name, 
+        desc,
+        level: parentLevel + 1
       });
       
-      if (!resp.ok) throw new Error('Failed to create node');
-      
-      const created = await resp.json();
       toast({ title: 'Success', description: 'Knowledge point added.' });
       onSuccess(created);
       setName('');
@@ -72,6 +63,7 @@ export default function CreateNodeModal({
       setLoading(false);
     }
   };
+
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
