@@ -17,13 +17,25 @@ def get_node_ancestors(db: Session, node: Node) -> List[Node]:
             break
     return ancestors
 
+def format_node_tree_md(node: Node, level: int = 0) -> str:
+    """
+    递归格式化子节点树为 Markdown 列表
+    """
+    indent = "  " * level
+    desc = node.desc.strip() if node.desc else "无描述"
+    # 如果描述太长，截断一点或者保持原样？这里选择保持原样以支持完整上下文。
+    md = f"{indent}- **{node.name}**: {desc}\n"
+    for child in node.children:
+        md += format_node_tree_md(child, level + 1)
+    return md
+
 def normalize_node_to_md(db: Session, node_id: int) -> str:
     """
-    将知识点及其上下文转化为 Markdown 文档
+    将知识点及其上下文（祖先和子孙）转化为 Markdown 文档（Agent 版）
     """
     node = db.query(Node).filter(Node.id == node_id).first()
     if not node:
-        return "未找到该知识点。"
+        return ""
     
     outline = db.query(Outline).filter(Outline.id == node.outline_id).first()
     outline_name = outline.name if outline else "未知大纲"
@@ -39,12 +51,20 @@ def normalize_node_to_md(db: Session, node_id: int) -> str:
     
     md += f"## 当前知识点: {node.name}\n\n"
     if node.desc:
-        md += f"### 知识点解析\n{node.desc}\n\n"
+        md += f"### 核心说明\n{node.desc}\n\n"
     else:
-        md += f"### 知识点解析\n(暂无详细描述)\n\n"
+        md += f"### 核心说明\n(该节点暂无详细描述)\n\n"
+
+    # 新增：递归解析子知识点 (针对上层知识点)
+    if node.children:
+        md += f"## 下级子知识点清单\n"
+        md += f"> 当您根据上层知识点出题时，请参考以下具体子领域的内容：\n\n"
+        for child in node.children:
+            md += format_node_tree_md(child)
+        md += "\n"
         
     if ancestors:
-        md += f"## 上下文说明\n"
+        md += f"## 上层上下文说明\n"
         for a in ancestors:
             md += f"- **{a.name}**: {a.desc or '无描述'}\n"
             
