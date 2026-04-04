@@ -1,0 +1,211 @@
+{
+  "Hero": {
+    "badge": "✨ 下一代 AI 助考助手已上线",
+    "title1": "让考试准备",
+    "title2": "从未如此轻松",
+    "desc": "ExamHelper 结合前沿 AI 技术，为您提供智能试题解析、考纲提取与备考建议，助您从容应对各类考试。",
+    "getStarted": "免费试用",
+    "viewDemo": "查看演示视频",
+    "users": "超过 5,000+ 用户正在使用"
+  },
+  "Nav": {
+    "features": "功能特性",
+    "solutions": "解决方案",
+    "faq": "常见问题",
+    "login": "登录",
+    "started": "立即开始"
+  },
+  "Practice": {
+    "title": "智能练习",
+    "sidebar": {
+      "practice": "智能练习",
+      "auditQueue": "审核队列",
+      "staging": "题目暂存",
+      "library": "题库管理",
+      "addQuestions": "新增题目",
+      "outlines": "大纲管理",
+      "masteryDocs": "掌握文档",
+      "aiLab": "AI 实验室",
+      "processAll": "全部入库",
+      "support": "帮助支持",
+      "archive": "归档"
+    },
+    "stats": {
+      "timeSpent": "本次用时",
+      "mastery": "掌握程度"
+    },
+    "attempts": {
+      "title": "历史表现",
+      "minutesAgo": "{minutes} 分钟前",
+      "yesterday": "昨天",
+      "error": "解析错误",
+      "incomplete": "未完成"
+    },
+    "aiDiagnostic": {
+      "title": "AI 实时诊断",
+      "focusScore": "专注系数",
+      "difficulty": "全站难度",
+      "hard": "极难",
+      "advice": "需要帮助？记住，任意有效 PDF 下的总面积都是 1。考虑到对称性，会有什么启发吗？",
+      "question": "从 -inf 到 0 的区间是否意味着我只需观察一半曲线？",
+      "answer": "完全正确！因为高斯曲线关于均值 (μ=0) 是完美对称的，左右两半的面积必然相等。"
+    },
+    "chat": {
+      "placeholder": "向 AI 询问解题思路...",
+      "send": "发送"
+    },
+    "outline": {
+      "title": "考试大纲管理",
+      "desc": "管理所有科目的考试大纲及其知识结构。每个大纲是 AI 生成题目的核心依据。",
+      "newOutline": "创建新大纲",
+      "search": "搜索大纲名称...",
+      "stats": {
+        "total": "总大纲数",
+        "nodes": "知识点总数",
+        "active": "激活大纲"
+      },
+      "card": {
+        "nodesCount": "{count} 个知识节点",
+        "viewNodes": "管理知识树",
+        "editInfo": "编辑基本信息",
+        "lastUpdate": "最近更新: {time}"
+      },
+      "actions": {
+        "cancel": "取消创建",
+        "generate": "开始生成",
+        "edit": "编辑大纲",
+        "delete": "删除大纲"
+      },
+      "deleteDialog": {
+        "title": "要删除该大纲吗？",
+        "desc": "确定要执行此操作吗？这将永久删除该大纲及其所属的所有知识点、暂存题目数据，且无法撤销。",
+        "confirm": "立即删除",
+        "cancel": "取消操作"
+      },
+      "messages": {
+        "deleteSuccess": "大纲已成功删除",
+        "deleteError": "删除大纲失败"
+      },
+      "wizard": {
+        "title": "AI 智能提取",
+        "subtitle": "定义考试大纲",
+        "desc": "利用多智能体 (Multi-Agent) 引擎从原始文本中提取层级化的知识点。",
+        "nameLabel": "考试 / 大纲名称",
+        "namePlaceholder": "例如：2026 考研数学一",
+        "contentLabel": "大纲文本内容",
+        "contentPlaceholder": "请在此处粘贴考纲原文...",
+        "importFile": "导入本地文件",
+        "importPrompt": "支持 .md, .txt 格式",
+        "processing": "正在分析知识图谱",
+        "processingDesc": "AI 引擎正在遍历考纲文档树并识别核心考核要求。",
+        "taskMonitor": "智能体任务监控",
+        "nodesFound": "个知识点已发现",
+        "retry": "重试",
+        "planTable": {
+          "step": "步骤",
+          "task": "任务描述",
+          "start": "起始锚点",
+          "end": "结束锚点",
+          "approve": "确认并继续执行",
+          "modify": "提出修改建议",
+          "placeholder": "如果不满意，请输入修改意见..."
+        }
+      },
+      "knowledgeTree": {
+        "backToOutlines": "返回大纲列表",
+        "subtitle": "知识树",
+        "loading": "加载中...",
+        "loadingNodes": "正在构建知识图谱...",
+        "searchPlaceholder": "搜索知识节点...",
+        "stats": {
+          "total": "节点总数",
+          "roots": "根节点数",
+          "depth": "最大深度"
+        },
+        "treeTitle": "知识结构树",
+        "nodesTotal": "个节点",
+        "errorTitle": "连接失败",
+        "retry": "重试",
+        "newNode": "添加知识点",
+        "addChild": "添加子点",
+        "deleteNode": "删除该节点",
+        "deleteConfirm": "确定要删除该节点及其所属的的所有子节点吗？此操作无法撤销。",
+        "emptyTitle": "暂无知识节点",
+        "emptyDesc": "该大纲尚未生成知识树，请先运行 AI 提取流程。"
+      }
+    },
+    "staging": {
+      "title": "审核与暂存池",
+      "search": "全域检索暂存内容...",
+      "desc": "正在审查 AI 生成的内容以确保课程一致性。",
+      "selectOutline": "选择大纲节点",
+      "viewDuplicate": "查看重复详情",
+      "stats": {
+        "pending": "等待审核",
+        "warnings": "标记警告",
+        "duplicates": "发现重复",
+        "approved": "已批准内容"
+      },
+      "batch": {
+        "title": "内容批次 #492",
+        "sortBy": "排序方式",
+        "newest": "最新"
+      },
+      "actions": {
+        "edit": "编辑",
+        "reject": "拒绝",
+        "approve": "批准",
+        "flagForReview": "标记审核",
+        "reGenerate": "重新生成",
+        "loadNext": "加载后续 50 道题目",
+        "viewDuplicate": "查看重复"
+      },
+      "messages": {
+        "logicFail": "AI 逻辑校验失败",
+        "duplicate": "ID #{id} 的潜在重复项",
+        "solutionError": "生成的答案不正确。计算得出 y=5，但输入要求 y=4。",
+        "fetchError": "同步数据流失败，请重试。"
+      }
+    },
+    "add": {
+      "title": "添加新题目",
+      "desc": "粘贴您的题目文档，AI 会自动识别题型并进行查重。",
+      "backToStaging": "返回审核暂存池",
+      "terminal": "AI 数据注入终端",
+      "importFile": "导入本地文件",
+      "importPrompt": "支持 .md, .txt",
+      "selectOutline": "选择目标大纲",
+      "contentLabel": "文档正文内容",
+      "contentPlaceholder": "请在此处粘贴题目原文... (支持 PDF 文本, Markdown 或 纯文本)",
+      "extract": "开始提取流水线",
+      "extracting": "正在提取...",
+      "abort": "中止任务",
+      "agentWorking": "AI 智能体正在工作",
+      "processingQueue": "处理队列中",
+      "slicer": "正在分析与分割文档",
+      "extractor": "正在利用 AI 提取题目",
+      "saver": "正在同步至数据库",
+      "batch": "当前批次: {count} 道题目",
+      "success": "提取完成",
+      "successDesc": "题目已成功导入并进入暂存池。",
+      "error": "提取失败"
+    },
+    "library": {
+      "title": "已录入题库",
+      "desc": "查看并管理已通过审核并正式入库的题目。",
+      "search": "全域检索题库内容...",
+      "sortBy": "排序方式",
+      "newest": "最新",
+      "oldest": "最旧",
+      "filterOutline": "大纲过滤",
+      "filterType": "题型过滤",
+      "nodes": "个知识点",
+      "total": "题库总数",
+      "actions": {
+        "view": "查看详情",
+        "delete": "从题库移除"
+      }
+    }
+  }
+}
+

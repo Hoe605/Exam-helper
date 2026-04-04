@@ -1,0 +1,177 @@
+{
+  "Hero": {
+    "badge": "✨ Next-Gen AI Exam Assistant is Live",
+    "title1": "Make Exam Prep",
+    "title2": "Easier Than Ever",
+    "desc": "ExamHelper combines cutting-edge AI to provide smart problem solving, syllabus extraction, and study advice to help you ace any exam.",
+    "getStarted": "Try for Free",
+    "viewDemo": "Watch Demo",
+    "users": "Trusted by 5,000+ users"
+  },
+  "Nav": {
+    "features": "Features",
+    "solutions": "Solutions",
+    "faq": "FAQ",
+    "login": "Log in",
+    "started": "Get Started"
+  },
+  "Practice": {
+    "title": "Smart Practice",
+    "sidebar": {
+      "practice": "Practice",
+      "auditQueue": "Audit Queue",
+      "staging": "Staging",
+      "addQuestions": "Add Questions",
+      "outlines": "Outlines",
+      "masteryDocs": "Mastery Docs",
+      "aiLab": "AI Lab",
+      "processAll": "Process All",
+      "support": "Support",
+      "archive": "Archive"
+    },
+    "stats": {
+      "timeSpent": "Time Spent",
+      "mastery": "Mastery Level"
+    },
+    "attempts": {
+      "title": "History",
+      "minutesAgo": "{minutes}m ago",
+      "yesterday": "Yesterday",
+      "error": "Parse Error",
+      "incomplete": "Incomplete"
+    },
+    "aiDiagnostic": {
+      "title": "AI Live Diagnostic",
+      "focusScore": "Focus Score",
+      "difficulty": "Global Difficulty",
+      "hard": "Extreme",
+      "advice": "Need help? Remember, the total area under any valid PDF is 1. Does symmetry give you a hint?",
+      "question": "Does from -inf to 0 mean I only look at half the curve?",
+      "answer": "Exactly! Since the Gaussian curve is perfectly symmetric about the mean (μ=0), both halves must have equal area."
+    },
+    "chat": {
+      "placeholder": "Ask AI for help...",
+      "send": "Send"
+    },
+    "outline": {
+      "title": "Syllabus Management",
+      "desc": "Manage the list of exam syllabi and the knowledge relationship map.",
+      "search": "Search syllabus...",
+      "newOutline": "Create New",
+      "stats": {
+        "total": "Total Syllabi",
+        "nodes": "Knowledge Nodes",
+        "active": "Active Status"
+      },
+      "card": {
+        "nodesCount": "{count} Nodes",
+        "lastUpdate": "Last: {time}",
+        "viewNodes": "Manage Tree"
+      },
+      "actions": {
+        "cancel": "Cancel",
+        "generate": "Start Generating",
+        "edit": "Edit",
+        "delete": "Delete"
+      },
+      "deleteDialog": {
+        "title": "Delete Syllabus?",
+        "desc": "Are you absolutely sure? This will permanently delete the syllabus, all its associated nodes, and any linked staging data. This action cannot be undone.",
+        "confirm": "Delete Now",
+        "cancel": "Cancel"
+      },
+      "messages": {
+        "deleteSuccess": "Syllabus deleted successfully",
+        "deleteError": "Failed to delete syllabus"
+      },
+      "wizard": {
+        "title": "AI Intelligent Extraction",
+        "subtitle": "Define Examination Syllabus",
+        "desc": "Use our Multi-Agent engine to extract hierarchical knowledge points from raw text.",
+        "nameLabel": "Exam / Syllabus Name",
+        "namePlaceholder": "e.g. 2026 Advanced Mathematics for Graduate Entrance",
+        "contentLabel": "Syllabus Text Content",
+        "contentPlaceholder": "Paste the examination outline here...",
+        "importFile": "Import File",
+        "importPrompt": "Supports .md, .txt",
+        "processing": "Analyzing Knowledge Map",
+
+        "processingDesc": "The AI engine is currently traversing the syllabus document tree and identifying core requirements.",
+        "taskMonitor": "Agent Task Monitor",
+        "nodesFound": "Nodes Found",
+        "retry": "Retry"
+      },
+      "knowledgeTree": {
+        "backToOutlines": "Back to Outlines",
+        "subtitle": "Knowledge Tree",
+        "loading": "Loading...",
+        "loadingNodes": "Building Knowledge Graph...",
+        "searchPlaceholder": "Search nodes...",
+        "stats": {
+          "total": "Total Nodes",
+          "roots": "Root Topics",
+          "depth": "Max Depth"
+        },
+        "treeTitle": "Knowledge Structure",
+        "nodesTotal": "nodes total",
+        "errorTitle": "Connection Failure",
+        "retry": "Retry",
+        "emptyTitle": "No Nodes Found",
+        "emptyDesc": "This outline has no knowledge nodes yet. Generate the tree first."
+      }
+    },
+    "staging": {
+      "title": "Audit & Staging Pool",
+      "desc": "Reviewing AI-generated content for curriculum alignment.",
+      "selectOutline": "SELECT OUTLINE NODE",
+      "stats": {
+        "pending": "Pending Review",
+        "warnings": "Flagged Warnings",
+        "duplicates": "Duplicates Found",
+        "approved": "Approved Content"
+      },
+      "batch": {
+        "title": "CONTENT BATCH #492",
+        "sortBy": "Sort by",
+        "newest": "Newest"
+      },
+      "actions": {
+        "edit": "Edit",
+        "reject": "Reject",
+        "approve": "Approve",
+        "flagForReview": "Flag for Review",
+        "reGenerate": "Re-generate",
+        "loadNext": "Load Next 50 Questions",
+        "viewDuplicate": "VIEW DUPLICATE"
+      },
+      "messages": {
+        "logicFail": "AI LOGIC CHECK FAILED",
+        "duplicate": "Potential Duplicate of ID #{id}",
+        "solutionError": "Incorrect solution generated. Calculated y=5, but input requires y=4."
+      }
+    },
+    "add": {
+      "title": "Add New Questions",
+      "desc": "Paste your question document, AI will automatically recognize types and check for duplicates.",
+      "backToStaging": "Back to Staging",
+      "terminal": "AI Ingestion Terminal",
+      "importFile": "Import Local File",
+      "importPrompt": "Supports .md, .txt",
+      "selectOutline": "Select Target Outline",
+      "contentLabel": "Document Content",
+      "contentPlaceholder": "Paste your questions here... (Supports PDF, Markdown or Plain Text)",
+      "extract": "Start Extraction Pipeline",
+      "extracting": "Extracting...",
+      "abort": "Abort Task",
+      "agentWorking": "AI Agent Working",
+      "processingQueue": "Processing Queue",
+      "slicer": "Analyzing & Slicing Document",
+      "extractor": "Extracting Questions with AI",
+      "saver": "Synchronizing to Database",
+      "batch": "Current Batch: {count} questions",
+      "success": "Extraction Complete",
+      "successDesc": "Questions imported successfully to staging pool.",
+      "error": "Extraction Failed"
+    }
+  }
+}

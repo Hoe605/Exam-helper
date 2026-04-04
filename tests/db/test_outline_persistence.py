@@ -6,9 +6,9 @@ from typing import List
 # 加入根目录
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from src.core.tools.db_tool import submit_outline_extraction_tool
-from src.core.schema.outline import OutlineNode
-from src.core.utils.outline_processor import flatten_outline_tree
+from src.core.agent.outline.tool import submit_outline_extraction_tool
+from src.core.agent.outline.schema.outline import OutlineNode
+from src.core.agent.outline.util.node import flatten_outline_tree
 
 def test_json_to_db_persistence():
     # 1. 加载 1.json
