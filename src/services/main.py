@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.services.outline.api import router as outline_router
 from src.services.outline.node.api import router as node_router
 from src.services.question.api import router as question_router
+from src.services.practice.api import router as practice_router
 
 def get_local_ip():
     """获取本机在局域网中的 IP 地址"""
@@ -55,6 +56,7 @@ app.add_middleware(
 app.include_router(outline_router)
 app.include_router(node_router)
 app.include_router(question_router)
+app.include_router(practice_router)
 
 @app.get("/")
 def root():

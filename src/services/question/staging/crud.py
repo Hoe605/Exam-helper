@@ -28,6 +28,23 @@ def update_staging(db: Session, staging_id: int, update: schemas.QuestionStaging
     for key, value in update_data.items():
         setattr(db_item, key, value)
     
+    # 获取用于返回的数据对象（避免删除后无法访问）
+    result_data = {
+        "id": db_item.id,
+        "context": db_item.context,
+        "options": db_item.options,
+        "q_type": db_item.q_type,
+        "type": db_item.type,
+        "status": db_item.status,
+        "is_warning": db_item.is_warning,
+        "warning_reason": db_item.warning_reason,
+        "duplicate_of_id": db_item.duplicate_of_id,
+        "duplicate_of_formal_id": db_item.duplicate_of_formal_id,
+        "outline_id": db_item.outline_id,
+        "error_msg": db_item.error_msg,
+        "created_at": db_item.created_at
+    }
+
     # 如果状态变更为 'approved'，则同步到正式题目表
     if db_item.status == "approved" and old_status != "approved":
         new_q = Question(
@@ -42,8 +59,7 @@ def update_staging(db: Session, staging_id: int, update: schemas.QuestionStaging
         db.delete(db_item)
         
     db.commit()
-    # 注意：如果被删了，db.refresh(db_item) 会报错，这里逻辑要微调
-    return {"id": staging_id, "status": "approved"}
+    return result_data
 
 def delete_staging(db: Session, staging_id: int):
     db_item = db.query(QuestionStaging).filter(QuestionStaging.id == staging_id).first()
