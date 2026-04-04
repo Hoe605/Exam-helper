@@ -21,6 +21,7 @@
       "practice": "智能练习",
       "auditQueue": "审核队列",
       "staging": "题目暂存",
+      "library": "题库管理",
       "addQuestions": "新增题目",
       "outlines": "大纲管理",
       "masteryDocs": "掌握文档",
@@ -188,6 +189,23 @@
       "success": "提取完成",
       "successDesc": "题目已成功导入并进入暂存池。",
       "error": "提取失败"
+    },
+    "library": {
+      "title": "已录入题库",
+      "desc": "查看并管理已通过审核并正式入库的题目。",
+      "search": "全域检索题库内容...",
+      "sortBy": "排序方式",
+      "newest": "最新",
+      "oldest": "最旧",
+      "filterOutline": "大纲过滤",
+      "filterType": "题型过滤",
+      "nodes": "个知识点",
+      "total": "题库总数",
+      "actions": {
+        "view": "查看详情",
+        "delete": "从题库移除"
+      }
     }
   }
 }
+

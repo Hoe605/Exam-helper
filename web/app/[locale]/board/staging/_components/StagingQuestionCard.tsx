@@ -32,15 +32,16 @@ export const StagingQuestionCard = memo(function StagingQuestionCard({
              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#767683] opacity-40">{q.q_type || 'General'}</span>
           </div>
           <div className="flex gap-3">
-             {q.is_warning && (q.duplicate_of_id || q.duplicate_of_formal_id) && (
+             {q.is_warning && (q.duplicate_of_id || q.duplicate_of_formal_id || q.warning_reason?.includes('#')) && (
                <Button 
                  onClick={() => onViewDuplicate(q)}
-                 className="bg-amber-50 text-amber-600 hover:bg-amber-100 border-none rounded-xl h-11 px-6 font-black uppercase tracking-widest text-[9px] flex items-center gap-2 active:scale-95"
+                 className="bg-[#FFF8E1] text-[#FF8F00] hover:bg-[#FF8F00] hover:text-white border border-[#FFE082] rounded-xl h-11 px-6 font-black uppercase tracking-widest text-[9px] flex items-center gap-2 active:scale-95 transition-all shadow-sm"
                >
-                 <Copy className="w-4 h-4" />
-                 {viewDuplicateLabel}
+                 <Copy className="w-3.5 h-3.5" />
+                 对比相似题目
                </Button>
              )}
+
              <button 
                onClick={() => onApprove(q.id)}
                className="p-3 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white shadow-sm transition-colors active:scale-95"
@@ -80,13 +81,25 @@ export const StagingQuestionCard = memo(function StagingQuestionCard({
 
        {/* Warnings / Footer */}
        {q.is_warning && q.warning_reason && (
-          <div className="bg-rose-50/50 rounded-2xl p-6 border border-rose-100/50 flex items-center gap-4">
-             <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0" />
-             <p className="text-xs font-bold text-rose-600 italic leading-tight">
-                {q.warning_reason} {q.error_msg && `- ${q.error_msg}`}
-             </p>
+          <div className="bg-rose-50/50 rounded-2xl p-6 border border-rose-100/50 flex items-center justify-between gap-4">
+             <div className="flex items-center gap-4">
+                <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0" />
+                <p className="text-xs font-bold text-rose-600 italic leading-tight">
+                   {q.warning_reason} {q.error_msg && `- ${q.error_msg}`}
+                </p>
+             </div>
+             
+             <Button 
+               onClick={() => onViewDuplicate(q)}
+               variant="ghost"
+               className="h-8 px-4 rounded-lg font-black uppercase tracking-widest text-[9px] text-rose-600 hover:bg-rose-100 hover:text-rose-700 border border-rose-200/50 flex items-center gap-2"
+             >
+                <div className="w-1 h-1 rounded-full bg-rose-500 animate-pulse" />
+                立即对比题目
+             </Button>
           </div>
        )}
+
     </div>
   );
 });

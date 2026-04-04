@@ -1,14 +1,6 @@
 import { create } from 'zustand';
+import { outlineService, Outline } from '@/services/outlineService';
 
-export interface Outline {
-  id: number;
-  name: string;
-  desc?: string;
-  metadata?: Record<string, any>;
-  node_count?: number; 
-  status: string;
-  content?: string;
-}
 
 interface OutlineState {
   syllabi: Outline[];
@@ -33,8 +25,6 @@ interface OutlineState {
   closeDeleteModal: () => void;
 }
 
-const API_BASE = "http://localhost:8000";
-
 export const useOutlineStore = create<OutlineState>((set, get) => ({
   syllabi: [],
   loading: false,
@@ -49,9 +39,7 @@ export const useOutlineStore = create<OutlineState>((set, get) => ({
   fetchSyllabi: async () => {
     set({ loading: true, error: null });
     try {
-      const resp = await fetch(`${API_BASE}/outlines/`);
-      if (!resp.ok) throw new Error("Connection failed: Syllabus engine offline");
-      const data = await resp.json();
+      const data = await outlineService.getOutlines();
       set({ syllabi: data, loading: false });
     } catch (err: any) {
       set({ error: err.message || "Network Error", loading: false });
@@ -60,9 +48,7 @@ export const useOutlineStore = create<OutlineState>((set, get) => ({
 
   deleteOutline: async (id: number) => {
     try {
-      const resp = await fetch(`${API_BASE}/outlines/${id}`, { method: 'DELETE' });
-      if (!resp.ok) return false;
-      
+      await outlineService.deleteOutline(id);
       const newSyllabi = get().syllabi.filter(s => s.id !== id);
       set({ syllabi: newSyllabi });
       return true;
@@ -74,6 +60,7 @@ export const useOutlineStore = create<OutlineState>((set, get) => ({
   createOutline: async (data: any) => {
     return true; 
   },
+
 
   openDeleteModal: (config) => {
     set({

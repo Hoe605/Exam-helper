@@ -32,10 +32,12 @@ export default function DashboardSidebar() {
   const sidebarLinks = [
     { icon: BrainCircuit, label: t('practice'), href: '/board', match: '/board' },
     { icon: ListTodo, label: t('auditQueue'), href: '/board/staging', match: '/board/staging', badge: stagingStats.pending },
+    { icon: Archive, label: t('library'), href: '/board/library', match: '/board/library' },
     { icon: Map, label: t('outlines'), href: '/board/outlines', match: '/board/outlines' },
     { icon: FileText, label: t('masteryDocs'), href: '#', match: 'docs' },
     { icon: FlaskConical, label: t('aiLab'), href: '#', match: 'ailab' },
   ];
+
 
   return (
     <aside className="w-64 bg-white flex flex-col p-6 gap-10 h-full border-r border-[#EDEEEF] shrink-0">

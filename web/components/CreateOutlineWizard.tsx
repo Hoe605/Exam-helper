@@ -20,6 +20,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { outlineService } from '@/services/outlineService';
+
 
 interface CreateOutlineWizardProps {
   onClose: () => void;
@@ -74,15 +76,7 @@ export default function CreateOutlineWizard({ onClose, onComplete }: CreateOutli
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:8000/outlines/extract', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, content })
-      });
-
-      if (!response.body) throw new Error("No response stream");
-
-      const reader = response.body.getReader();
+      const reader = await outlineService.extractOutline({ name, content });
       const decoder = new TextDecoder();
       let buffer = '';
 
@@ -139,11 +133,7 @@ export default function CreateOutlineWizard({ onClose, onComplete }: CreateOutli
     if (!outlineId) return;
     setIsSubmittingFeedback(true);
     try {
-      await fetch(`http://localhost:8000/outlines/${outlineId}/feedback`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ feedback: val })
-      });
+      await outlineService.submitFeedback(outlineId, val);
       // 成功后由 StreamingResponse 继续推送状态，这里只需关闭本地提示
       setProgress(prev => ({ ...prev, isAwaitingReview: false }));
       setFeedback('');
@@ -153,6 +143,7 @@ export default function CreateOutlineWizard({ onClose, onComplete }: CreateOutli
       setIsSubmittingFeedback(false);
     }
   };
+
 
   return (
     <Card className="flex flex-col h-full bg-white rounded-[48px] shadow-2xl shadow-indigo-900/10 overflow-hidden border-[#EDEEEF]">

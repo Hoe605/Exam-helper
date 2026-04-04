@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Save, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-import { KnowledgeNode } from './types';
+import { nodeService, KnowledgeNode } from '@/services/nodeService';
 
 interface EditNodeModalProps {
   node: KnowledgeNode | null;
@@ -25,7 +25,6 @@ interface EditNodeModalProps {
   onDelete: (nodeId: number) => void;
 }
 
-const API_BASE = "http://localhost:8000";
 
 export default function EditNodeModal({ 
   node, 
@@ -53,15 +52,7 @@ export default function EditNodeModal({
     
     setLoading(true);
     try {
-      const resp = await fetch(`${API_BASE}/nodes/${node.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, desc })
-      });
-      
-      if (!resp.ok) throw new Error('Failed to update node');
-      
-      const updated = await resp.json();
+      const updated = await nodeService.updateNode(node.id, { name, desc });
       toast({ title: 'Success', description: 'Node updated successfully' });
       onSuccess(updated);
       onClose();
@@ -78,12 +69,7 @@ export default function EditNodeModal({
 
     setDeleting(true);
     try {
-      const resp = await fetch(`${API_BASE}/nodes/${node.id}`, {
-        method: 'DELETE'
-      });
-      
-      if (!resp.ok) throw new Error('Failed to delete node');
-      
+      await nodeService.deleteNode(node.id);
       toast({ title: 'Deleted', description: 'Node and its sub-structure removed.' });
       onDelete(node.id);
       onClose();
@@ -93,6 +79,7 @@ export default function EditNodeModal({
       setDeleting(false);
     }
   };
+
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>

@@ -1,25 +1,5 @@
 import { create } from 'zustand';
-
-export interface StagingQuestion {
-  id: number;
-  q_type: string;
-  context: string;
-  options?: any;
-  status: string;
-  is_warning: boolean;
-  warning_reason?: string;
-  duplicate_of_id?: number;
-  duplicate_of_formal_id?: number;
-  error_msg?: string;
-  type?: string;
-}
-
-interface StagingStats {
-  total: number;
-  pending: number;
-  warning: number;
-  approved: number;
-}
+import { questionService, StagingQuestion, StagingStats } from '@/services/questionService';
 
 interface DuplicateConfig {
   current: StagingQuestion | null;
@@ -70,8 +50,6 @@ interface QuestionState {
   approveAllPending: () => Promise<boolean>;
 }
 
-const API_BASE = "http://localhost:8000";
-
 export const useQuestionStore = create<QuestionState>((set, get) => ({
   stagingQuestions: [],
   stagingStats: { total: 0, pending: 0, warning: 0, approved: 0 },
@@ -100,14 +78,10 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
   fetchStagingData: async () => {
     set({ loading: true, error: null });
     try {
-      const [qResp, sResp] = await Promise.all([
-        fetch(`${API_BASE}/question/staging/`),
-        fetch(`${API_BASE}/question/staging/stats`)
+      const [questions, stats] = await Promise.all([
+        questionService.getStagingQuestions(),
+        questionService.getStagingStats()
       ]);
-      
-      if (!qResp.ok || !sResp.ok) throw new Error("Failed to sync with staging pool");
-      
-      const [questions, stats] = await Promise.all([qResp.json(), sResp.json()]);
       set({ stagingQuestions: questions, stagingStats: stats, loading: false });
     } catch (err: any) {
       set({ error: err.message, loading: false });
@@ -116,13 +90,7 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
 
   updateStagingStatus: async (id, status) => {
     try {
-      const resp = await fetch(`${API_BASE}/question/staging/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
-      });
-      if (!resp.ok) return false;
-
+      await questionService.updateStagingStatus(id, status);
       await get().fetchStagingData(); 
       return true;
     } catch (err) {
@@ -132,9 +100,7 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
 
   deleteStagingItem: async (id) => {
     try {
-      const resp = await fetch(`${API_BASE}/question/staging/${id}`, { method: 'DELETE' });
-      if (!resp.ok) return false;
-      
+      await questionService.deleteStagingItem(id);
       await get().fetchStagingData();
       return true;
     } catch (err) {
@@ -143,8 +109,18 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
   },
 
   openDuplicateModal: async (question) => {
-    const originalId = question.duplicate_of_formal_id || question.duplicate_of_id;
-    const isFormal = !!question.duplicate_of_formal_id;
+    let originalId = question.duplicate_of_formal_id || question.duplicate_of_id;
+    let isFormal = !!question.duplicate_of_formal_id;
+    
+    // 如果显式字段为空，尝试从 warning_reason 中提取（例如 "与正式库 #9 相似"）
+    if (!originalId && question.warning_reason) {
+      const match = question.warning_reason.match(/#(\d+)/);
+      if (match) {
+        originalId = parseInt(match[1]);
+        isFormal = question.warning_reason.includes('正式库') || 
+                   question.warning_reason.includes('题库');
+      }
+    }
     
     set({
       isDuplicateModalOpen: true,
@@ -161,6 +137,7 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
 
     if (!originalId) return;
 
+
     // Local check first (only for staging duplicates)
     if (!isFormal) {
       const localMatch = get().stagingQuestions.find(q => q.id === originalId);
@@ -174,24 +151,23 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
 
     // Network fallback
     try {
-      const path = isFormal ? `formal/${originalId}` : originalId;
-      const res = await fetch(`${API_BASE}/question/staging/${path}`);
-      if (res.ok) {
-        const data = await res.json();
-        set(state => ({
-          duplicateConfig: { ...state.duplicateConfig, originalQuestion: data, loadingOriginal: false }
-        }));
+      let data;
+      if (isFormal) {
+        data = await questionService.getQuestionDetail(originalId);
       } else {
-        set(state => ({
-          duplicateConfig: { ...state.duplicateConfig, loadingOriginal: false }
-        }));
+        data = await questionService.getStagingQuestion(originalId);
       }
+      
+      set(state => ({
+        duplicateConfig: { ...state.duplicateConfig, originalQuestion: data, loadingOriginal: false }
+      }));
     } catch (err) {
       set(state => ({
         duplicateConfig: { ...state.duplicateConfig, loadingOriginal: false }
       }));
     }
   },
+
 
   closeDuplicateModal: () => {
     set(state => ({
@@ -231,13 +207,7 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
 
   resolveDuplicate: async (keepId: number, discardId: number) => {
     try {
-      const resp = await fetch(`${API_BASE}/question/staging/resolve-duplicate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ keep_id: keepId, discard_id: discardId })
-      });
-      if (!resp.ok) return false;
-
+      await questionService.resolveDuplicate(keepId, discardId);
       await get().fetchStagingData();
       return true;
     } catch (err) {
@@ -247,8 +217,7 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
 
   approveAllPending: async () => {
     try {
-      const resp = await fetch(`${API_BASE}/question/staging/approve-all`, { method: 'POST' });
-      if (!resp.ok) return false;
+      await questionService.approveAllPending();
       await get().fetchStagingData();
       return true;
     } catch (err) {

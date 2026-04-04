@@ -31,9 +31,8 @@ import ListView from './ListView';
 import EditNodeModal from './EditNodeModal';
 import CreateNodeModal from './CreateNodeModal';
 
-const API_BASE = "http://localhost:8000";
-
-import { KnowledgeNode, OutlineInfo } from './types';
+import { nodeService, KnowledgeNode } from '@/services/nodeService';
+import { outlineService, Outline } from '@/services/outlineService';
 
 // ─── Utility Functions ───────────────────────────────────────────────────────
 
@@ -54,7 +53,7 @@ export default function KnowledgeTreePage() {
   const outlineId = params?.id as string;
 
   const [apiNodes, setApiNodes] = useState<KnowledgeNode[]>([]);
-  const [outline, setOutline] = useState<OutlineInfo | null>(null);
+  const [outline, setOutline] = useState<Outline | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -72,25 +71,23 @@ export default function KnowledgeTreePage() {
   });
 
   const fetchData = useCallback(async () => {
+    if (!outlineId) return;
     setLoading(true);
     setError(null);
     try {
-      const resp = await fetch(`${API_BASE}/nodes/outline/${outlineId}`);
-      if (!resp.ok) throw new Error('Failed to fetch knowledge nodes');
-      const nodesData = await resp.json();
+      const [nodesData, outlineData] = await Promise.all([
+        nodeService.getNodesByOutline(outlineId),
+        outlineService.getOutline(outlineId)
+      ]);
       setApiNodes(nodesData);
-      
-      const outlineResp = await fetch(`${API_BASE}/outlines/${outlineId}`);
-      if (outlineResp.ok) {
-        const outlineData = await outlineResp.json();
-        setOutline(outlineData);
-      }
+      setOutline(outlineData);
     } catch (err: any) {
       setError(err.message || 'Unknown error');
     } finally {
       setLoading(false);
     }
   }, [outlineId]);
+
 
   useEffect(() => {
     if (outlineId) fetchData();
