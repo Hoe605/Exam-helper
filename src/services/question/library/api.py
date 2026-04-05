@@ -41,3 +41,23 @@ def delete_library_question(q_id: int, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(status_code=404, detail="Question not found")
     return {"message": "Question deleted successfully"}
+
+from src.core.agent.question.classify import QuestionClassifySDK
+
+# 实例化分类 Agent SDK 单例
+classify_sdk = QuestionClassifySDK()
+
+@router.post("/{q_id}/classify")
+async def classify_question(q_id: int):
+    """
+    智能解析题目归属：调用 Agent 将题目自动分类至所属章节（Level 2 节点）
+    """
+    result = await classify_sdk.classify_question(q_id=q_id)
+    
+    if not result["success"]:
+        raise HTTPException(
+            status_code=400, 
+            detail={"errors": result["errors"]}
+        )
+        
+    return result
