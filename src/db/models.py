@@ -89,6 +89,11 @@ class Question(Base):
     answer = relationship("QuestionAnswer", back_populates="question", uselist=False, cascade="all, delete-orphan")
     user_logs = relationship("UserActionLog", back_populates="question", cascade="all, delete-orphan")
 
+    @property
+    def nodes(self):
+        """便捷获取该题目关联的所有知识点对象"""
+        return [m.node for m in self.mappings if m.node]
+
 
 class QuestionNodeMapping(Base):
     """题目-知识点多对多关联表"""
