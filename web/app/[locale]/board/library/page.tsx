@@ -90,6 +90,19 @@ export default function LibraryPage() {
     }
   }, [deleteModal.id, toast]);
 
+  const handleRefresh = useCallback(async (id?: number) => {
+    if (id) {
+      try {
+        const updatedQ = await questionService.getQuestionDetail(id);
+        setQuestions(prev => prev.map(q => q.id === id ? updatedQ : q));
+        return;
+      } catch (err) {
+        console.error("Single item refresh failed, falling back to full refresh", err);
+      }
+    }
+    fetchData();
+  }, [fetchData]);
+
   return (
     <div className="flex h-screen bg-[#F8F9FA] text-[#191C1D] overflow-hidden">
       <DashboardSidebar />
@@ -185,6 +198,7 @@ export default function LibraryPage() {
                       question={q} 
                       t={t}
                       onDelete={(id) => setDeleteModal({ isOpen: true, id })}
+                      onRefresh={handleRefresh}
                     />
                  ))}
                  

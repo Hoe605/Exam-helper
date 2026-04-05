@@ -73,6 +73,10 @@ export const questionService = {
 
   async deleteLibraryQuestion(qId: number | string): Promise<void> {
     return apiClient.delete(`/question/library/${qId}`);
+  },
+
+  async classifyLibraryQuestion(qId: number | string): Promise<any> {
+    return apiClient.post(`/question/library/${qId}/classify`, {});
   }
 };
 
