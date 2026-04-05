@@ -14,6 +14,13 @@ def read_root_nodes(outline_id: int, db: Session = Depends(get_db)):
     """获取大纲下的根节点（支持递归获取子节点）"""
     return crud.get_root_nodes(db, outline_id=outline_id)
 
+from src.core.utils.node import get_nodes_by_level
+
+@router.get("/outline/{outline_id}/level/{level}", response_model=List[schemas.Node])
+def read_nodes_at_level(outline_id: int, level: int, db: Session = Depends(get_db)):
+    """按层级获取大纲下的所有知识点节点 (例如获取所有章节或所有考点)"""
+    return get_nodes_by_level(outline_id=outline_id, node_level=level, db=db)
+
 @router.get("/{node_id}", response_model=schemas.Node)
 def read_node(node_id: int, db: Session = Depends(get_db)):
     db_node = crud.get_node(db, node_id=node_id)
