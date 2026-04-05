@@ -71,8 +71,12 @@ app.include_router(
 )
 
 from src.core.auth.schemas import UserRead, UserUpdate
+from src.services.admin.api import router as admin_router
 
 # 用户管理路由 (支持 /me 获取当前登录用户信息)
+# 注册 admin 路由以支持 GET /users
+app.include_router(admin_router)
+
 app.include_router(
     fastapi_users.get_users_router(UserRead, UserUpdate),
     prefix="/users",

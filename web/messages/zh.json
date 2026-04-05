@@ -28,7 +28,8 @@
       "aiLab": "AI 实验室",
       "processAll": "全部入库",
       "support": "帮助支持",
-      "archive": "归档"
+      "archive": "归档",
+      "adminConsole": "管理后台"
     },
     "stats": {
       "timeSpent": "本次用时",
@@ -206,6 +207,37 @@
         "delete": "从题库移除"
       }
     }
+  },
+  "Admin": {
+    "title": "系统管理后台",
+    "userManagement": "全局用户管理",
+    "userList": "用户列表",
+    "email": "邮箱",
+    "role": "角色",
+    "status": "状态",
+    "actions": "操作",
+    "active": "激活",
+    "inactive": "禁用",
+    "deleteUser": "删除用户",
+    "deleteConfirm": "确定要删除该用户吗？此操作将导致该用户无法登录且无法恢复。",
+    "editUser": "编辑用户",
+    "newUser": "新增用户",
+    "addUser": "添加用户",
+    "password": "密码",
+    "confirmPassword": "确认密码",
+    "createSuccess": "已经成功创建用户",
+    "createError": "创建用户失败",
+    "emailIdentifier": "邮箱账号",
+    "authRole": "授权角色",
+    "privilegeLevel": "特权级别",
+    "identityStatus": "账户状态",
+    "statusOpen": "已启用",
+    "statusClosed": "已禁用",
+    "statusDesc": "账户登录权限开关",
+    "confirmCreate": "确认并创建",
+    "updateUser": "更新用户信息",
+    "username": "用户名",
+    "resetPassword": "重置密码"
   }
 }
 

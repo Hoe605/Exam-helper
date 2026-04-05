@@ -8,7 +8,7 @@ router = APIRouter(
     tags=["library"]
 )
 
-@router.get("/", response_model=schemas.QuestionListResponse)
+@router.get("", response_model=schemas.QuestionListResponse)
 def get_library_questions(
     outline_id: Optional[int] = Query(None, description="大纲 ID"),
     node_id: Optional[int] = Query(None, description="知识点 ID"),

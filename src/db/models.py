@@ -13,6 +13,7 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     __tablename__ = "user"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    username = Column(String(100), unique=True, index=True, nullable=True, comment="用户名")
     role = Column(String(50), default="student", comment="角色 (admin, teacher, student)")
 
     # 关联

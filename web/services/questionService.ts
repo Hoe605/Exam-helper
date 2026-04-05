@@ -23,7 +23,7 @@ export interface StagingStats {
 
 export const questionService = {
   async getStagingQuestions(): Promise<StagingQuestion[]> {
-    return apiClient.get<StagingQuestion[]>('/question/staging/');
+    return apiClient.get<StagingQuestion[]>('/question/staging');
   },
 
   async getStagingStats(): Promise<StagingStats> {
@@ -69,7 +69,7 @@ export const questionService = {
     if (params.skip) query.append('skip', params.skip.toString());
     if (params.limit) query.append('limit', params.limit.toString());
     
-    return apiClient.get(`/question/library/?${query.toString()}`);
+    return apiClient.get(`/question/library?${query.toString()}`);
   },
 
   async getQuestionDetail(qId: number | string): Promise<any> {

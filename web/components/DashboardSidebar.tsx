@@ -20,7 +20,8 @@ import {
   BrainCircuit,
   Map,
   LogOut,
-  LogIn
+  LogIn,
+  ShieldCheck
 } from "lucide-react";
 
 export default function DashboardSidebar() {
@@ -116,6 +117,18 @@ export default function DashboardSidebar() {
           <Link href="/login" className="flex items-center gap-4 px-4 py-2 text-[10px] font-black uppercase tracking-[0.1em] text-[#1A237E] hover:text-[#000666]">
             <LogIn className="w-4 h-4" />
             登录系统
+          </Link>
+        )}
+        
+        {isLoggedIn && user?.is_superuser && (
+          <Link 
+            href="/board/admin/users" 
+            className={`flex items-center gap-4 px-4 py-2 text-[10px] font-black uppercase tracking-[0.1em] transition-colors ${
+              pathname.includes('/admin') ? 'text-[#1A237E] bg-[#E0E0FF]/50 rounded-lg' : 'text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg'
+            }`}
+          >
+            <ShieldCheck className="w-4 h-4" />
+            {t('adminConsole')}
           </Link>
         )}
 

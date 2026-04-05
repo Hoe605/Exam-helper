@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { authService } from '@/services/authService';
 
 interface User {
   id: number;
@@ -20,7 +21,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       token: null,
       isLoggedIn: false,
@@ -30,7 +31,14 @@ export const useAuthStore = create<AuthState>()(
         }
         set({ user, token, isLoggedIn: true });
       },
-      logout: () => {
+      logout: async () => {
+        // Try to logout from server
+        try {
+           await authService.logout();
+        } catch (e) {
+           console.error("Logout failed on server", e);
+        }
+        
         if (typeof window !== 'undefined') {
           localStorage.removeItem('token');
           window.location.href = '/login';

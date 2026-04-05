@@ -15,7 +15,7 @@ router = APIRouter(
     tags=["outline"]
 )
 
-@router.get("/", response_model=List[schemas.Outline])
+@router.get("", response_model=List[schemas.Outline])
 def read_outlines(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_outlines(db, skip=skip, limit=limit)
 
@@ -26,7 +26,7 @@ def read_outline(outline_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Outline not found")
     return db_outline
 
-@router.post("/", response_model=schemas.Outline)
+@router.post("", response_model=schemas.Outline)
 def create_outline(outline: schemas.OutlineCreate, db: Session = Depends(get_db)):
     return crud.create_outline(db=db, outline=outline)
 

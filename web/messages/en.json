@@ -27,7 +27,8 @@
       "aiLab": "AI Lab",
       "processAll": "Process All",
       "support": "Support",
-      "archive": "Archive"
+      "archive": "Archive",
+      "adminConsole": "Admin Console"
     },
     "stats": {
       "timeSpent": "Time Spent",
@@ -173,5 +174,34 @@
       "successDesc": "Questions imported successfully to staging pool.",
       "error": "Extraction Failed"
     }
+  },
+  "Admin": {
+    "title": "System Management",
+    "userManagement": "Global User Management",
+    "userList": "User List",
+    "email": "Email",
+    "role": "Role",
+    "status": "Status",
+    "actions": "Actions",
+    "active": "Active",
+    "inactive": "Inactive",
+    "deleteUser": "Delete User",
+    "deleteConfirm": "Are you sure you want to delete this user? This will prevent them from logging in and cannot be undone.",
+    "editUser": "Edit User",
+    "newUser": "New User",
+    "addUser": "Add User",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "emailIdentifier": "Email Identifier",
+    "authRole": "Authorization Role",
+    "privilegeLevel": "Privilege Level",
+    "identityStatus": "Identity Status",
+    "statusOpen": "Enabled",
+    "statusClosed": "Disabled",
+    "statusDesc": "Account Login Access Toggle",
+    "confirmCreate": "Confirm & Create",
+    "updateUser": "Update User Info",
+    "username": "Username",
+    "resetPassword": "Reset Password"
   }
 }

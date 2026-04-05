@@ -12,7 +12,7 @@ export interface Outline {
 
 export const outlineService = {
   async getOutlines(): Promise<Outline[]> {
-    return apiClient.get<Outline[]>('/outlines/');
+    return apiClient.get<Outline[]>('/outlines');
   },
 
   async getOutline(id: number | string): Promise<Outline> {

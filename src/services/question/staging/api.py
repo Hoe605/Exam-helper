@@ -8,7 +8,7 @@ router = APIRouter(
     tags=["staging"]
 )
 
-@router.get("/", response_model=List[schemas.QuestionStaging])
+@router.get("", response_model=List[schemas.QuestionStaging])
 def read_staging(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_staging_questions(db, skip=skip, limit=limit)
 
