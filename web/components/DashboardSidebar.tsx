@@ -1,6 +1,12 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { Link, usePathname, useRouter } from '@/i18n/routing';
+import { useQuestionStore } from "@/store/useQuestionStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { 
   AppWindow, 
   ListTodo, 
@@ -12,18 +18,16 @@ import {
   Menu,
   ChevronRight,
   BrainCircuit,
-  Map
+  Map,
+  LogOut,
+  LogIn
 } from "lucide-react";
-import { Link, usePathname } from '@/i18n/routing';
-import { useQuestionStore } from "@/store/useQuestionStore";
-import { useEffect } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 
 export default function DashboardSidebar() {
   const t = useTranslations('Practice.sidebar');
   const pathname = usePathname();
   const { stagingStats, fetchStagingData } = useQuestionStore();
+  const { user, logout, isLoggedIn } = useAuthStore();
 
   useEffect(() => {
     fetchStagingData();
@@ -86,8 +90,35 @@ export default function DashboardSidebar() {
         </div>
       </nav>
 
-      {/* Secondary Navigation */}
-      <div className="flex flex-col gap-2 py-6 border-t border-[#EDEEEF]">
+      {/* Secondary Navigation & Auth */}
+      <div className="mt-auto flex flex-col gap-2 py-6 border-t border-[#EDEEEF]">
+        {isLoggedIn && user ? (
+          <div className="flex flex-col gap-4 px-2 mb-4">
+            <div className="flex items-center gap-3 py-2">
+              <div className="w-8 h-8 rounded-full bg-[#1A237E]/10 flex items-center justify-center text-[#1A237E] font-bold text-xs uppercase border border-[#1A237E]/20">
+                {user.email[0]}
+              </div>
+              <div className="flex flex-col overflow-hidden">
+                <span className="text-[10px] font-bold text-[#000666] truncate">{user.email}</span>
+                <span className="text-[9px] font-black uppercase text-rose-500 tracking-[0.1em]">{user.role}</span>
+              </div>
+            </div>
+            
+            <button 
+              onClick={logout}
+              className="flex items-center gap-4 px-4 py-2 text-[10px] font-black uppercase tracking-[0.1em] text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors text-left"
+            >
+              <LogOut className="w-4 h-4" />
+              退出登录
+            </button>
+          </div>
+        ) : (
+          <Link href="/login" className="flex items-center gap-4 px-4 py-2 text-[10px] font-black uppercase tracking-[0.1em] text-[#1A237E] hover:text-[#000666]">
+            <LogIn className="w-4 h-4" />
+            登录系统
+          </Link>
+        )}
+
         <Link href="#" className="flex items-center gap-4 px-4 py-2 text-[10px] font-black uppercase tracking-[0.1em] text-[#767683] hover:text-[#000666]">
           <HelpCircle className="w-4 h-4 opacity-60" />
           {t('support')}

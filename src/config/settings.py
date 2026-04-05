@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     db_type: str = Field(default="sqlite") # e.g. sqlite, postgresql
     db_name: str = Field(default="exam_helper.db")
     database_url: Optional[str] = Field(default=None, alias="DATABASE_URL")
+    secret_key: str = Field(default="exam-helper-secret-key-2026", alias="SECRET_KEY")
 
     @property
     def sqlalchemy_database_url(self) -> str:

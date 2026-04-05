@@ -46,7 +46,9 @@ app = FastAPI(
 # 配置 CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 开发阶段允许所有来源
+    allow_origins=[
+        "*"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -57,6 +59,25 @@ app.include_router(outline_router)
 app.include_router(node_router)
 app.include_router(question_router)
 app.include_router(practice_router)
+
+from src.core.auth.fastapi_users import fastapi_users
+from src.core.auth.jwt import auth_backend
+
+# 认证路由 (仅开放登录入口，不开放注册)
+app.include_router(
+    fastapi_users.get_auth_router(auth_backend),
+    prefix="/auth/jwt",
+    tags=["auth"],
+)
+
+from src.core.auth.schemas import UserRead, UserUpdate
+
+# 用户管理路由 (支持 /me 获取当前登录用户信息)
+app.include_router(
+    fastapi_users.get_users_router(UserRead, UserUpdate),
+    prefix="/users",
+    tags=["users"],
+)
 
 @app.get("/")
 def root():

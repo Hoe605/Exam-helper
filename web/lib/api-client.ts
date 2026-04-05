@@ -1,7 +1,19 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
+function getAuthHeaders(): Record<string, string> {
+  if (typeof window === 'undefined') return {};
+  const token = localStorage.getItem('token');
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+}
+
 async function handleResponse(response: Response) {
   if (!response.ok) {
+    if (response.status === 401) {
+       // Optional: Redirect to login or clear token
+       if (typeof window !== 'undefined') {
+          localStorage.removeItem('token');
+       }
+    }
     const error = await response.json().catch(() => ({ message: response.statusText }));
     throw new Error(error.message || `HTTP error! Status: ${response.status}`);
   }
@@ -13,6 +25,10 @@ export const apiClient = {
     const response = await fetch(`${BASE_URL}${path}`, {
       ...options,
       method: 'GET',
+      headers: {
+        ...getAuthHeaders(),
+        ...options?.headers,
+      },
     });
     return handleResponse(response);
   },
@@ -23,6 +39,7 @@ export const apiClient = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...getAuthHeaders(),
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -36,6 +53,7 @@ export const apiClient = {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
+        ...getAuthHeaders(),
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -47,6 +65,10 @@ export const apiClient = {
     const response = await fetch(`${BASE_URL}${path}`, {
       ...options,
       method: 'DELETE',
+      headers: {
+        ...getAuthHeaders(),
+        ...options?.headers,
+      },
     });
     return handleResponse(response);
   },
@@ -60,6 +82,7 @@ export const apiClient = {
       method,
       headers: {
         ...(method === 'POST' ? { 'Content-Type': 'application/json' } : {}),
+        ...getAuthHeaders(),
         ...options?.headers,
       },
       body: method === 'POST' ? JSON.stringify(body) : undefined,

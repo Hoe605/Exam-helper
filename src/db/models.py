@@ -1,14 +1,30 @@
+from fastapi_users.db import SQLAlchemyBaseUserTable
 from sqlalchemy import Column, Integer, String, Text, ForeignKey, JSON, Float, DateTime, SmallInteger, func, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from .base import Base
 
 # ==========================================
+# 权限与用户表
+# ==========================================
+
+class User(SQLAlchemyBaseUserTable[int], Base):
+    """用户表：继承 fastapi-users 基础模型"""
+    __tablename__ = "user"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    role = Column(String(50), default="student", comment="角色 (admin, teacher, student)")
+
+    # 关联
+    outlines = relationship("Outline", back_populates="teacher")
+
+
+# ==========================================
 # 知识图谱核心表
 # ==========================================
 
 class Outline(Base):
-    """大纲表"""
+    """大纲表 (对应课程级别)"""
     __tablename__ = "outline"
     
     id = Column(Integer, primary_key=True, autoincrement=True, comment="主键")
@@ -19,7 +35,11 @@ class Outline(Base):
     metadata_ = Column("metadata", JSON, nullable=True, comment="元数据")
     is_deleted = Column(Boolean, default=False, index=True, comment="软删除标记")
     
+    # 权限关联：标记该课程/大纲归属哪个老师
+    teacher_id = Column(Integer, ForeignKey("user.id"), nullable=True, comment="归属教师 ID")
+    
     # 关联
+    teacher = relationship("User", back_populates="outlines")
     nodes = relationship("Node", back_populates="outline", cascade="all, delete-orphan")
     staging_questions = relationship("QuestionStaging", back_populates="outline_rel", cascade="all, delete-orphan")
     questions = relationship("Question", back_populates="outline_rel", cascade="all, delete-orphan")
