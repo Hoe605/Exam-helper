@@ -52,6 +52,10 @@ export const questionService = {
   async approveAllPending(): Promise<void> {
     return apiClient.post('/question/staging/approve-all', {});
   },
+  
+  async rejectAllConflicts(): Promise<void> {
+    return apiClient.post('/question/staging/reject-all', {});
+  },
 
   async extractQuestions(data: { content: string; outline_id: number }): Promise<ReadableStreamDefaultReader<Uint8Array>> {
     return apiClient.fetchStream('/question/agent/extract', data);

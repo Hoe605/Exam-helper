@@ -144,3 +144,19 @@ def approve_all_pending(db: Session) -> int:
     except Exception as e:
         db.rollback()
         raise e
+
+def reject_all_conflicts(db: Session) -> int:
+    """
+    一键拒绝（删除）所有冲突项 (is_warning == True)
+    """
+    conflict_items = db.query(QuestionStaging).filter(QuestionStaging.is_warning == True).all()
+    count = 0
+    try:
+        for item in conflict_items:
+            db.delete(item)
+            count += 1
+        db.commit()
+        return count
+    except Exception as e:
+        db.rollback()
+        raise e

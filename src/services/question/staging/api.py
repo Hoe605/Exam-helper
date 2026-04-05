@@ -66,3 +66,8 @@ def delete_item(staging_id: int, db: Session = Depends(get_db)):
 def approve_all(db: Session = Depends(get_db)):
     count = crud.approve_all_pending(db)
     return {"message": f"Successfully approved {count} items", "count": count}
+
+@router.post("/reject-all")
+def reject_all(db: Session = Depends(get_db)):
+    count = crud.reject_all_conflicts(db)
+    return {"message": f"Successfully rejected {count} conflict items", "count": count}

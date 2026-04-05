@@ -140,6 +140,21 @@ export default function StagingPage() {
               >
                 一键通过所有非冲突项
               </Button>
+
+              <Button 
+                variant="ghost" 
+                onClick={async () => {
+                  const success = await useQuestionStore.getState().rejectAllConflicts();
+                  if (success) {
+                    toast({ title: "Success", description: "All conflict items rejected." });
+                  } else {
+                    toast({ title: "Error", description: "Batch rejection failed.", variant: "destructive" });
+                  }
+                }}
+                className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-2xl h-14 px-8 font-black uppercase tracking-widest text-[10px]"
+              >
+                一键拒绝所有冲突项
+              </Button>
            </div>
         </div>
 

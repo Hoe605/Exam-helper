@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { questionService, StagingQuestion, StagingStats } from '@/services/questionService';
+export type { StagingQuestion, StagingStats };
 
 interface DuplicateConfig {
   current: StagingQuestion | null;
@@ -48,6 +49,7 @@ interface QuestionState {
   // Duplicate Resolution
   resolveDuplicate: (keepId: number, discardId: number) => Promise<boolean>;
   approveAllPending: () => Promise<boolean>;
+  rejectAllConflicts: () => Promise<boolean>;
 }
 
 export const useQuestionStore = create<QuestionState>((set, get) => ({
@@ -218,6 +220,16 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
   approveAllPending: async () => {
     try {
       await questionService.approveAllPending();
+      await get().fetchStagingData();
+      return true;
+    } catch (err) {
+      return false;
+    }
+  },
+
+  rejectAllConflicts: async () => {
+    try {
+      await questionService.rejectAllConflicts();
       await get().fetchStagingData();
       return true;
     } catch (err) {
