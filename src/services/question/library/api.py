@@ -11,15 +11,16 @@ router = APIRouter(
 @router.get("/", response_model=schemas.QuestionListResponse)
 def get_library_questions(
     outline_id: Optional[int] = Query(None, description="大纲 ID"),
+    node_id: Optional[int] = Query(None, description="知识点 ID"),
     q_type: Optional[str] = Query(None, description="题型过滤"),
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db)
 ):
     """
-    获取题库中的题目列表（支持按大纲 ID 过滤）
+    获取题库中的题目列表（支持按大纲 ID 或 节点 ID 过滤）
     """
-    total, items = crud.get_questions(db, outline_id=outline_id, q_type=q_type, skip=skip, limit=limit)
+    total, items = crud.get_questions(db, outline_id=outline_id, node_id=node_id, q_type=q_type, skip=skip, limit=limit)
     return {"total": total, "items": items}
 
 @router.get("/{q_id}", response_model=schemas.Question)

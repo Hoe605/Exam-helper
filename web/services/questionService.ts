@@ -57,9 +57,10 @@ export const questionService = {
     return apiClient.fetchStream('/question/agent/extract', data);
   },
 
-  async getLibraryQuestions(params: { outline_id?: number; q_type?: string; skip?: number; limit?: number }): Promise<{ total: number; items: any[] }> {
+  async getLibraryQuestions(params: { outline_id?: number; node_id?: number; q_type?: string; skip?: number; limit?: number }): Promise<{ total: number; items: any[] }> {
     const query = new URLSearchParams();
     if (params.outline_id) query.append('outline_id', params.outline_id.toString());
+    if (params.node_id) query.append('node_id', params.node_id.toString());
     if (params.q_type) query.append('q_type', params.q_type);
     if (params.skip) query.append('skip', params.skip.toString());
     if (params.limit) query.append('limit', params.limit.toString());

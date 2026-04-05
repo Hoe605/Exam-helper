@@ -5,20 +5,24 @@ from typing import List, Optional
 def get_questions(
     db: Session, 
     outline_id: Optional[int] = None, 
+    node_id: Optional[int] = None,
     q_type: Optional[str] = None,
     skip: int = 0, 
     limit: int = 100
 ):
     """
     获分题目列表
-    支持大纲过滤、题型过滤以及分页
+    支持大纲过滤、知识点过滤、题型过滤以及分页
     """
     query = db.query(Question).options(
         joinedload(Question.answer),
         joinedload(Question.mappings).joinedload(QuestionNodeMapping.node)
     )
     
-    if outline_id:
+    if node_id:
+        # 只要题目关联了指定节点或其子节点，都返回
+        query = query.filter(Question.mappings.any(QuestionNodeMapping.node_id == node_id))
+    elif outline_id:
         query = query.filter(Question.outline_id == outline_id)
         
     if q_type:

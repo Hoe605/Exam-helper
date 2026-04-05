@@ -9,8 +9,7 @@ import {
   RefreshCcw,
   BookOpen,
   Filter,
-  CheckCircle2,
-  Trash2
+  CheckCircle2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DashboardSidebar from "@/components/DashboardSidebar";
@@ -21,35 +20,81 @@ import { outlineService, Outline } from "@/services/outlineService";
 // Modular Components
 import { LibraryQuestionCard } from "./_components/LibraryQuestionCard";
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
+import { useLibraryStore } from "@/store/useLibraryStore";
+import { nodeService, KnowledgeNode } from "@/services/nodeService";
 
 export default function LibraryPage() {
   const t = useTranslations('Practice.library');
   const tBtn = useTranslations('Practice.outline.actions');
   const { toast } = useToast();
   
+  const { 
+    selectedOutlineId, 
+    setSelectedOutlineId, 
+    selectedNodeId, 
+    setSelectedNodeId,
+    searchQuery,
+    setSearchQuery
+  } = useLibraryStore();
+  
   // States
   const [questions, setQuestions] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [outlines, setOutlines] = useState<Outline[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [nodes, setNodes] = useState<KnowledgeNode[]>([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   // Filtering
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedOutlineId, setSelectedOutlineId] = useState<number | undefined>(undefined);
   const [skip, setSkip] = useState(0);
   const limit = 20;
 
   // Delete Modal
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: number | null }>({ isOpen: false, id: null });
 
+  // Fetch Nodes when outline changes
+  useEffect(() => {
+    if (selectedOutlineId) {
+       nodeService.getNodesByOutline(selectedOutlineId).then(data => {
+          const extractLevel2 = (tree: KnowledgeNode[]): KnowledgeNode[] => {
+             let res: KnowledgeNode[] = [];
+             tree.forEach(n => {
+                if (n.level === 2) res.push(n);
+                if (n.children) res = [...res, ...extractLevel2(n.children)];
+             });
+             return res;
+          };
+          setNodes(extractLevel2(data));
+       });
+    } else {
+       setNodes([]);
+    }
+  }, [selectedOutlineId]);
+
+  // Initial load of outlines
+  useEffect(() => {
+    outlineService.getOutlines().then(data => {
+      setOutlines(data);
+    }).catch(err => {
+      console.error("Failed to load outlines:", err);
+    });
+  }, []);
+
   const fetchData = useCallback(async (isLoadMore = false) => {
+    if (!selectedOutlineId) {
+      setQuestions([]);
+      setTotal(0);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
       const [questionsData, outlinesData] = await Promise.all([
         questionService.getLibraryQuestions({ 
-          outline_id: selectedOutlineId, 
+          outline_id: selectedOutlineId,
+          node_id: selectedNodeId || undefined,
           skip: isLoadMore ? skip + limit : 0, 
           limit 
         }),
@@ -71,11 +116,11 @@ export default function LibraryPage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedOutlineId, skip]);
+  }, [selectedOutlineId, selectedNodeId, skip]);
 
   useEffect(() => {
     fetchData();
-  }, [selectedOutlineId, fetchData]);
+  }, [selectedOutlineId, selectedNodeId, fetchData]);
 
   const handleDelete = useCallback(async () => {
     if (deleteModal.id === null) return;
@@ -146,12 +191,12 @@ export default function LibraryPage() {
                  />
               </div>
               <div className="flex gap-4">
-                 <div className="flex items-center gap-3 bg-white px-6 py-3 rounded-2xl border border-[#EDEEEF]">
+                 <div className="flex items-center gap-3 bg-white px-6 py-3 rounded-2xl border border-[#EDEEEF] focus-within:ring-2 focus-within:ring-indigo-600/20 transition-all">
                     <BookOpen className="w-4 h-4 text-indigo-600" />
                     <select 
                       value={selectedOutlineId || ''}
-                      onChange={(e) => setSelectedOutlineId(e.target.value ? parseInt(e.target.value) : undefined)}
-                      className="text-xs font-black uppercase tracking-widest bg-transparent outline-none cursor-pointer"
+                      onChange={(e) => setSelectedOutlineId(e.target.value ? parseInt(e.target.value) : null)}
+                      className="text-xs font-black uppercase tracking-widest bg-transparent outline-none cursor-pointer max-w-[200px]"
                     >
                        <option value="">{t('filterOutline')}</option>
                        {outlines.map(o => (
@@ -159,10 +204,22 @@ export default function LibraryPage() {
                        ))}
                     </select>
                  </div>
-                 <Button variant="ghost" className="rounded-xl h-12 px-6 text-[#767683] hover:text-[#000666] hover:bg-[#F3F4F5] font-black uppercase tracking-widest text-[10px] flex items-center gap-2">
-                    <Filter className="w-4 h-4" />
-                    {t('filterType')}
-                 </Button>
+
+                 {selectedOutlineId && (
+                   <div className="flex items-center gap-3 bg-white px-6 py-3 rounded-2xl border border-[#EDEEEF] focus-within:ring-2 focus-within:ring-indigo-600/20 transition-all animate-in fade-in slide-in-from-left-2 duration-300">
+                      <Filter className="w-4 h-4 text-indigo-600" />
+                      <select 
+                        value={selectedNodeId || ''}
+                        onChange={(e) => setSelectedNodeId(e.target.value ? parseInt(e.target.value) : null)}
+                        className="text-xs font-black uppercase tracking-widest bg-transparent outline-none cursor-pointer max-w-[200px]"
+                      >
+                         <option value="">知识点过滤</option>
+                         {nodes.map(n => (
+                           <option key={n.id} value={n.id}>{n.name}</option>
+                         ))}
+                      </select>
+                   </div>
+                 )}
               </div>
            </div>
 
@@ -183,10 +240,15 @@ export default function LibraryPage() {
                     Reconnect
                  </Button>
               </div>
+           ) : !selectedOutlineId ? (
+              <div className="flex flex-col items-center justify-center py-40 gap-4 opacity-40">
+                 <BookOpen className="w-16 h-16 text-[#767683]" />
+                 <span className="text-[10px] font-black uppercase tracking-widest">请先在大纲过滤器中选择一个考试大纲。</span>
+              </div>
            ) : questions.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-40 gap-4 opacity-40">
                  <BookOpen className="w-16 h-16 text-[#767683]" />
-                 <span className="text-[10px] font-black uppercase tracking-widest">库中暂无题目，待审核通过。</span>
+                 <span className="text-[10px] font-black uppercase tracking-widest">该大纲（或节点）暂无题目内容。</span>
               </div>
            ) : (
               <div className="flex flex-col gap-6 pb-20">
