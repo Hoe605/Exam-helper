@@ -27,6 +27,7 @@ class QuestionBase(BaseModel):
     q_type: Optional[str] = None
     outline_id: Optional[int] = None
     type: Optional[str] = None
+    difficulty: Optional[int] = 1
 
 class Question(QuestionBase):
     """

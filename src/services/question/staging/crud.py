@@ -42,6 +42,7 @@ def update_staging(db: Session, staging_id: int, update: schemas.QuestionStaging
         "duplicate_of_formal_id": db_item.duplicate_of_formal_id,
         "outline_id": db_item.outline_id,
         "error_msg": db_item.error_msg,
+        "difficulty": db_item.difficulty,
         "created_at": db_item.created_at
     }
 
@@ -52,7 +53,8 @@ def update_staging(db: Session, staging_id: int, update: schemas.QuestionStaging
             options=db_item.options,
             q_type=db_item.q_type,
             outline_id=db_item.outline_id,
-            type=db_item.type
+            type=db_item.type,
+            difficulty=db_item.difficulty
         )
         db.add(new_q)
         # 一旦成功入库，直接物理删除暂存表项，保持暂存池清爽
@@ -100,7 +102,8 @@ def resolve_duplicate(db: Session, keep_id: int, discard_id: int):
             options=keep_item.options,
             q_type=keep_item.q_type,
             outline_id=keep_item.outline_id,
-            type=keep_item.type
+            type=keep_item.type,
+            difficulty=keep_item.difficulty
         )
         db.add(new_q)
         
@@ -132,7 +135,8 @@ def approve_all_pending(db: Session) -> int:
                 options=item.options,
                 q_type=item.q_type,
                 outline_id=item.outline_id,
-                type=item.type
+                type=item.type,
+                difficulty=item.difficulty
             )
             db.add(new_q)
             # 物理删除已通过的项

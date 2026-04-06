@@ -31,13 +31,14 @@ def build_extract_agent():
     
     return workflow.compile()
 
-async def run_question_extraction_stream(content: str, outline_id: int):
+async def run_question_extraction_stream(content: str, outline_id: int, type: str = "其他"):
     """
     【流式主入口】
     """
     initial_state = {
         "document_content": content,
         "outline_id": int(outline_id),
+        "question_type": type,
         "raw_chunks": [],
         "pending_chunks": [],
         "processed_count": 0,

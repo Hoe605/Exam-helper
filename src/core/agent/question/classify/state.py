@@ -17,6 +17,10 @@ class ClassifyState(TypedDict):
     selected_node_id: Optional[int]
     selected_node_name: Optional[str]
     
+    # 难度评估结果
+    difficulty: Optional[int]
+    difficulty_reason: Optional[str]
+    
     # 处理结果/错误
     db_status: str
     errors: List[str]

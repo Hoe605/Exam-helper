@@ -30,6 +30,20 @@ export const StagingQuestionCard = memo(function StagingQuestionCard({
           <div className="flex items-center gap-4">
              <Badge className="bg-[#F3F4F5] text-[#767683] border-none px-4 py-1.5 rounded-lg font-black text-[10px]">ID: #{q.id}</Badge>
              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#767683] opacity-40">{q.q_type || 'General'}</span>
+             
+             {q.difficulty && q.difficulty > 0 && (
+                <Badge 
+                  className={`
+                    border-none px-3 py-1 rounded-lg font-black text-[10px] transition-colors
+                    ${q.difficulty <= 3 ? 'bg-emerald-50 text-emerald-600' : 
+                      q.difficulty <= 6 ? 'bg-amber-50 text-amber-600' : 
+                      q.difficulty <= 8 ? 'bg-rose-50 text-rose-600' : 
+                      'bg-purple-50 text-purple-600'}
+                  `}
+                >
+                  难度 {q.difficulty}
+                </Badge>
+             )}
           </div>
           <div className="flex gap-3">
              {q.is_warning && (q.duplicate_of_id || q.duplicate_of_formal_id || q.warning_reason?.includes('#')) && (

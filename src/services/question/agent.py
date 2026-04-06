@@ -15,6 +15,7 @@ router = APIRouter(
 async def extract_questions(
     content: str = Body(..., embed=True),
     outline_id: int = Body(..., embed=True),
+    type: str = Body("其他", embed=True),
     db: Session = Depends(get_db)
 ):
     """
@@ -23,7 +24,7 @@ async def extract_questions(
     async def event_generator():
         try:
             # 这里的 run_question_extraction_stream 是一个异步生成器
-            async for update in run_question_extraction_stream(content, outline_id):
+            async for update in run_question_extraction_stream(content, outline_id, type):
                 # 只返回前端需要的核心字段，并确保日期等对象被正确序列化
                 msg = {
                     "step": update["step"],

@@ -77,24 +77,39 @@ export const LibraryQuestionCard = memo(function LibraryQuestionCard({
              <Badge className="bg-[#F3F4F5] text-[#767683] border-none px-4 py-1.5 rounded-lg font-black text-[10px]">ID: #{q.id}</Badge>
              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#767683] opacity-40 whitespace-nowrap">{q.q_type || 'General'}</span>
              
-             {/* Knowledge Node Tags */}
-             <div className="flex items-center gap-2 flex-wrap">
-                {q.nodes && q.nodes.length > 0 ? (
-                  q.nodes.map((node: any) => (
+              {/* Knowledge Node Tags */}
+              <div className="flex items-center gap-2 flex-wrap">
+                 {q.nodes && q.nodes.length > 0 ? (
+                   q.nodes.map((node: any) => (
+                     <Badge 
+                       key={node.id} 
+                       className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border-none px-3 py-1 rounded-lg font-bold text-[10px] transition-colors flex items-center gap-1.5"
+                     >
+                       <div className="w-1 h-1 rounded-full bg-indigo-400" />
+                       {node.name}
+                     </Badge>
+                   ))
+                 ) : (
+                   <Badge className="bg-slate-50 text-slate-400 border-none px-3 py-1 rounded-lg font-bold text-[10px]">
+                     未分类
+                   </Badge>
+                 )}
+                 
+                 {/* Difficulty Badge */}
+                 {q.difficulty && q.difficulty > 0 && (
                     <Badge 
-                      key={node.id} 
-                      className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border-none px-3 py-1 rounded-lg font-bold text-[10px] transition-colors flex items-center gap-1.5"
+                      className={`
+                        border-none px-3 py-1 rounded-lg font-black text-[10px] transition-colors
+                        ${q.difficulty <= 3 ? 'bg-emerald-50 text-emerald-600' : 
+                          q.difficulty <= 6 ? 'bg-amber-50 text-amber-600' : 
+                          q.difficulty <= 8 ? 'bg-rose-50 text-rose-600' : 
+                          'bg-purple-50 text-purple-600'}
+                      `}
                     >
-                      <div className="w-1 h-1 rounded-full bg-indigo-400" />
-                      {node.name}
+                      难度 {q.difficulty}
                     </Badge>
-                  ))
-                ) : (
-                  <Badge className="bg-slate-50 text-slate-400 border-none px-3 py-1 rounded-lg font-bold text-[10px]">
-                    未分类
-                  </Badge>
-                )}
-             </div>
+                 )}
+              </div>
           </div>
           <div className="flex gap-3">
              {/* Classification Actions */}

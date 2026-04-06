@@ -9,5 +9,6 @@ class ExtractState(TypedDict):
     total_count: int                    # 总切片数
     current_batch_results: List[dict]   # 当前单次节点提取出的题目列表
     extracted_questions: List[dict]     # 累计提取出的所有题目
+    question_type: str                  # 题目来源/分类 (如: 真题, 模拟题)
     db_stats: Dict[str, Any]            # 累计入库统计结果
     errors: List[str]

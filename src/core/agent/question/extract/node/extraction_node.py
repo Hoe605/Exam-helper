@@ -56,6 +56,7 @@ def extraction_node(state: ExtractState):
             batch_results = response.tool_calls[0]["args"].get("questions", [])
             for q in batch_results:
                 q["outline_id"] = int(outline_id) if outline_id else None
+                q["type"] = state.get("question_type")
     except Exception as e:
         logger.warning("当前块解析失败: %s", e)
 

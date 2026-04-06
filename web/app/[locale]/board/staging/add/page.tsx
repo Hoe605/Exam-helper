@@ -45,6 +45,7 @@ export default function QuestionAddPage() {
   const [outlines, setOutlines] = useState<Outline[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedOutlineId, setSelectedOutlineId] = useState<number | null>(null);
+  const [selectedType, setSelectedType] = useState('真题');
   const [content, setContent] = useState('');
   const [isExtracting, setIsExtracting] = useState(false);
   
@@ -101,7 +102,11 @@ export default function QuestionAddPage() {
     setSteps(prev => prev.map(s => ({ ...s, isProcessing: false, isCompleted: false, count: 0 })));
 
     try {
-      const reader = await questionService.extractQuestions({ content, outline_id: selectedOutlineId });
+      const reader = await questionService.extractQuestions({ 
+        content, 
+        outline_id: selectedOutlineId,
+        type: selectedType
+      });
       const decoder = new TextDecoder();
 
       while (true) {
@@ -248,7 +253,35 @@ export default function QuestionAddPage() {
               </div>
            </div>
 
-           {/* Step 2: Content Input */}
+            {/* Step 2: Source Type Selection */}
+            <div className="bg-white rounded-[40px] p-10 border border-[#EDEEEF] shadow-sm flex flex-col gap-8">
+               <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+                     <Layers className="w-4 h-4" />
+                  </div>
+                  <h2 className="text-lg font-black text-[#000666] uppercase tracking-wider">题目来源分类</h2>
+               </div>
+               
+               <div className="flex gap-4">
+                  {['真题', '模拟题', '其他'].map((type) => (
+                    <button
+                      key={type}
+                      onClick={() => !isExtracting && setSelectedType(type)}
+                      className={`
+                        px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all border-2
+                        ${selectedType === type 
+                          ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-900/20 scale-105' 
+                          : 'bg-white border-[#EDEEEF] text-[#767683] hover:border-indigo-200'}
+                      `}
+                    >
+                      {type}
+                    </button>
+                  ))}
+               </div>
+               <p className="text-[10px] font-bold text-[#767683] opacity-60">此分类将应用于当前文档中提取出的所有题目。</p>
+            </div>
+
+           {/* Step 3: Content Input */}
            <div className="bg-white rounded-[40px] p-10 border border-[#EDEEEF] shadow-sm flex flex-col gap-8">
               <div className="flex items-center gap-3">
                  <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">

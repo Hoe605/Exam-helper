@@ -88,6 +88,7 @@ class QuestionStaging(Base):
     duplicate_of_formal_id = Column(Integer, nullable=True, comment="疑似重复的正式库ID")
     outline_id = Column(Integer, ForeignKey("outline.id"), nullable=True, comment="物理外键ID")
     error_msg = Column(Text, nullable=True)
+    difficulty = Column(Integer, comment="难度系数 (1-10)")
     created_at = Column(DateTime, default=func.now())
     
     # 关联
@@ -103,6 +104,7 @@ class Question(Base):
     q_type = Column(String(50), nullable=True, comment="题型 (单选/多选/填空/解答)")
     outline_id = Column(Integer, ForeignKey("outline.id"), nullable=True, comment="物理外键ID")
     type = Column(String(64), nullable=True, comment="题目来源类型 (真题 / 模拟题 / AI生成)")
+    difficulty = Column(Integer, comment="难度系数 (1-10)")
     
     # 关联
     outline_rel = relationship("Outline", back_populates="questions")

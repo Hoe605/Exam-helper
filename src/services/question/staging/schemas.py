@@ -14,6 +14,7 @@ class QuestionStagingBase(BaseModel):
     duplicate_of_formal_id: Optional[int] = None
     outline_id: Optional[int] = None
     error_msg: Optional[str] = None
+    difficulty: Optional[int] = 1
 
 class QuestionStagingUpdate(BaseModel):
     status: Optional[str] = None

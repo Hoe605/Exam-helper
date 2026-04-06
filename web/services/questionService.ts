@@ -12,6 +12,7 @@ export interface StagingQuestion {
   duplicate_of_formal_id?: number;
   error_msg?: string;
   type?: string;
+  difficulty?: number;
 }
 
 export interface StagingStats {
@@ -57,7 +58,7 @@ export const questionService = {
     return apiClient.post('/question/staging/reject-all', {});
   },
 
-  async extractQuestions(data: { content: string; outline_id: number }): Promise<ReadableStreamDefaultReader<Uint8Array>> {
+  async extractQuestions(data: { content: string; outline_id: number; type?: string }): Promise<ReadableStreamDefaultReader<Uint8Array>> {
     return apiClient.fetchStream('/question/agent/extract', data);
   },
 
