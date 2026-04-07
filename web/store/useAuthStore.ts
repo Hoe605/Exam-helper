@@ -50,7 +50,7 @@ export const useAuthStore = create<AuthState>()(
           const pathSegments = window.location.pathname.split('/');
           const supportedLocales = ['zh', 'en'];
           const currentLocale = supportedLocales.includes(pathSegments[1]) ? pathSegments[1] : 'zh';
-          window.location.href = `/${currentLocale}/login`;
+          window.location.href = `/${currentLocale}`;
         }
       },
     }),

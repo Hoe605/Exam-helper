@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useParams } from 'next/navigation';
 
+import { LoginModal } from './LoginModal';
+
 export function Navbar() {
   const t = useTranslations('Landing.nav');
   const { locale } = useParams();
@@ -47,24 +49,46 @@ export function Navbar() {
              <Link href="/" locale="zh" className={`hover:text-brand-primary ${locale === 'zh' ? 'text-brand-primary' : ''}`}>中文</Link>
           </div>
 
-          <Link href={user ? "/board" : "/login"}>
-            <Button 
-              variant="ghost" 
-              className="px-4 py-2 text-sm font-heading font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-all active:scale-95 duration-200"
-            >
-              {t('login')}
-            </Button>
-          </Link>
+          {!user ? (
+            <LoginModal>
+              <Button 
+                variant="ghost" 
+                className="px-4 py-2 text-sm font-heading font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-all active:scale-95 duration-200"
+              >
+                {t('login')}
+              </Button>
+            </LoginModal>
+          ) : (
+            <Link href="/board">
+              <Button 
+                variant="ghost" 
+                className="px-4 py-2 text-sm font-heading font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-all active:scale-95 duration-200"
+              >
+                Dashboard
+              </Button>
+            </Link>
+          )}
           
-          <Link href={user ? "/board" : "/login"}>
-            <Button 
-              className="px-5 py-2 text-sm font-heading font-semibold bg-brand-primary text-brand-on-primary rounded-xl hover:opacity-90 transition-all active:scale-95 duration-200 shadow-md border-none"
-            >
-              {t('signup')}
-            </Button>
-          </Link>
+          {!user ? (
+            <LoginModal>
+              <Button 
+                className="px-5 py-2 text-sm font-heading font-semibold bg-brand-primary text-brand-on-primary rounded-xl hover:opacity-90 transition-all active:scale-95 duration-200 shadow-md border-none"
+              >
+                {t('signup')}
+              </Button>
+            </LoginModal>
+          ) : (
+            <Link href="/board">
+              <Button 
+                className="px-5 py-2 text-sm font-heading font-semibold bg-brand-primary text-brand-on-primary rounded-xl hover:opacity-90 transition-all active:scale-95 duration-200 shadow-md border-none"
+              >
+                Board
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </nav>
   );
 }
+

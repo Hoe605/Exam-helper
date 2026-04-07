@@ -3,9 +3,14 @@
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Check, CheckCircle2 } from 'lucide-react';
+import { Link } from '@/i18n/routing';
+
+import { LoginModal } from './LoginModal';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export function Pricing() {
   const t = useTranslations('Landing.pricing');
+  const { user } = useAuthStore();
 
   return (
     <section id="pricing" className="py-32 px-6 max-w-7xl mx-auto transition-all duration-500">
@@ -35,12 +40,24 @@ export function Pricing() {
               </li>
             ))}
           </ul>
-          <Button 
-            className="w-full py-6 rounded-2xl border-2 border-brand-primary text-brand-primary font-heading font-bold hover:bg-white transition-all bg-transparent active:scale-95"
-            variant="outline"
-          >
-            {t('free.cta')}
-          </Button>
+          {!user ? (
+            <LoginModal>
+              <Button 
+                className="w-full py-6 rounded-2xl border-2 border-brand-primary text-brand-primary font-heading font-bold hover:bg-white transition-all bg-transparent active:scale-95"
+                variant="outline"
+              >
+                {t('free.cta')}
+              </Button>
+            </LoginModal>
+          ) : (
+            <Button 
+              className="w-full py-6 rounded-2xl border-2 border-brand-primary text-brand-primary font-heading font-bold hover:bg-white transition-all bg-transparent active:scale-95"
+              variant="outline"
+              asChild
+            >
+              <Link href="/board">{t('free.cta')}</Link>
+            </Button>
+          )}
         </div>
         
         {/* Scholar */}
@@ -64,11 +81,22 @@ export function Pricing() {
               </li>
             ))}
           </ul>
-          <Button 
-            className="w-full py-7 rounded-2xl bg-brand-primary text-brand-on-primary font-heading font-bold hover:opacity-90 shadow-2xl transition-all hover:scale-105 active:scale-95 border-none"
-          >
-            {t('scholar.cta')}
-          </Button>
+          {!user ? (
+            <LoginModal>
+              <Button 
+                className="w-full py-7 rounded-2xl bg-brand-primary text-brand-on-primary font-heading font-bold hover:opacity-90 shadow-2xl transition-all hover:scale-105 active:scale-95 border-none"
+              >
+                {t('scholar.cta')}
+              </Button>
+            </LoginModal>
+          ) : (
+            <Button 
+              className="w-full py-7 rounded-2xl bg-brand-primary text-brand-on-primary font-heading font-bold hover:opacity-90 shadow-2xl transition-all hover:scale-105 active:scale-95 border-none"
+              asChild
+            >
+              <Link href="/board">{t('scholar.cta')}</Link>
+            </Button>
+          )}
         </div>
         
         {/* Institution */}

@@ -6,8 +6,12 @@ import { Link } from '@/i18n/routing';
 import { PlayCircle } from 'lucide-react';
 import Image from 'next/image';
 
+import { LoginModal } from './LoginModal';
+import { useAuthStore } from '@/store/useAuthStore';
+
 export function Hero() {
   const t = useTranslations('Landing.hero');
+  const { user } = useAuthStore();
 
   return (
     <section className="relative px-6 pt-20 pb-32 max-w-7xl mx-auto overflow-hidden">
@@ -24,13 +28,23 @@ export function Hero() {
             {t('desc')}
           </p>
           <div className="flex flex-wrap gap-4">
-            <Link href="/board">
-              <Button 
-                className="bg-brand-primary text-brand-on-primary px-8 py-7 rounded-xl font-heading font-bold text-lg hover:shadow-xl hover:scale-105 transition-all active:scale-95 border-none"
-              >
-                {t('cta')}
-              </Button>
-            </Link>
+            {!user ? (
+              <LoginModal>
+                <Button 
+                  className="bg-brand-primary text-brand-on-primary px-8 py-7 rounded-xl font-heading font-bold text-lg hover:shadow-xl hover:scale-105 transition-all active:scale-95 border-none"
+                >
+                  {t('cta')}
+                </Button>
+              </LoginModal>
+            ) : (
+              <Link href="/board">
+                <Button 
+                  className="bg-brand-primary text-brand-on-primary px-8 py-7 rounded-xl font-heading font-bold text-lg hover:shadow-xl hover:scale-105 transition-all active:scale-95 border-none"
+                >
+                  {t('cta')}
+                </Button>
+              </Link>
+            )}
             <Button 
               variant="outline" 
               className="flex items-center gap-2 px-8 py-7 rounded-xl border border-brand-outline-variant font-heading font-bold text-lg text-brand-primary hover:bg-brand-surface-container-low transition-all hover:scale-105 active:scale-95"
