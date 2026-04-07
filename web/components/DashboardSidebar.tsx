@@ -7,13 +7,13 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
-  AppWindow, 
-  ListTodo, 
-  Layers, 
-  FileText, 
-  FlaskConical, 
-  HelpCircle, 
+import {
+  AppWindow,
+  ListTodo,
+  Layers,
+  FileText,
+  FlaskConical,
+  HelpCircle,
   Archive,
   Menu,
   ChevronRight,
@@ -36,6 +36,7 @@ export default function DashboardSidebar() {
 
   const sidebarLinks = [
     { icon: BrainCircuit, label: t('practice'), href: '/board', match: '/board' },
+    { icon: AppWindow, label: t('courses'), href: '/board/courses', match: '/board/courses' },
     { icon: ListTodo, label: t('auditQueue'), href: '/board/staging', match: '/board/staging', badge: stagingStats.pending },
     { icon: Archive, label: t('library'), href: '/board/library', match: '/board/library' },
     { icon: Map, label: t('outlines'), href: '/board/outlines', match: '/board/outlines' },
@@ -56,7 +57,7 @@ export default function DashboardSidebar() {
         </div>
         <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#767683] pl-10 opacity-60">QUALITY CONTROL</span>
       </div>
-      
+
       {/* Primary Navigation */}
       <nav className="flex-1 flex flex-col gap-2">
         {sidebarLinks.map((item, idx) => {
@@ -65,11 +66,10 @@ export default function DashboardSidebar() {
             <Link
               key={idx}
               href={item.href}
-              className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-300 text-[10px] font-black uppercase tracking-[0.1em] ${
-                active 
-                  ? "bg-[#E0E0FF]/50 text-[#1A237E] border-r-4 border-[#1A237E] rounded-r-none -mr-6 shadow-sm" 
+              className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-300 text-[10px] font-black uppercase tracking-[0.1em] ${active
+                  ? "bg-[#E0E0FF]/50 text-[#1A237E] border-r-4 border-[#1A237E] rounded-r-none -mr-6 shadow-sm"
                   : "text-[#767683] hover:bg-[#F8F9FA] hover:text-[#000666]"
-              }`}
+                }`}
             >
               <div className="flex items-center gap-4">
                 <item.icon className={`w-4 h-4 ${active ? 'text-[#1A237E]' : 'opacity-60'}`} />
@@ -84,11 +84,6 @@ export default function DashboardSidebar() {
           );
         })}
 
-        <div className="mt-8 px-2">
-          <Button className="w-full bg-[#000666] hover:bg-[#1A237E] text-white rounded-lg h-12 text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-indigo-900/20 shadow-offset-y-4">
-             {t('processAll')}
-          </Button>
-        </div>
       </nav>
 
       {/* Secondary Navigation & Auth */}
@@ -104,8 +99,8 @@ export default function DashboardSidebar() {
                 <span className="text-[9px] font-black uppercase text-rose-500 tracking-[0.1em]">{user.role}</span>
               </div>
             </div>
-            
-            <button 
+
+            <button
               onClick={logout}
               className="flex items-center gap-4 px-4 py-2 text-[10px] font-black uppercase tracking-[0.1em] text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors text-left"
             >
@@ -119,13 +114,12 @@ export default function DashboardSidebar() {
             登录系统
           </Link>
         )}
-        
+
         {isLoggedIn && user?.is_superuser && (
-          <Link 
-            href="/board/admin/users" 
-            className={`flex items-center gap-4 px-4 py-2 text-[10px] font-black uppercase tracking-[0.1em] transition-colors ${
-              pathname.includes('/admin') ? 'text-[#1A237E] bg-[#E0E0FF]/50 rounded-lg' : 'text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg'
-            }`}
+          <Link
+            href="/board/admin/users"
+            className={`flex items-center gap-4 px-4 py-2 text-[10px] font-black uppercase tracking-[0.1em] transition-colors ${pathname.includes('/admin') ? 'text-[#1A237E] bg-[#E0E0FF]/50 rounded-lg' : 'text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg'
+              }`}
           >
             <ShieldCheck className="w-4 h-4" />
             {t('adminConsole')}

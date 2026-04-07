@@ -6,6 +6,7 @@ from src.services.outline.api import router as outline_router
 from src.services.outline.node.api import router as node_router
 from src.services.question.api import router as question_router
 from src.services.practice.api import router as practice_router
+from src.services.course.api import router as course_router
 
 def get_local_ip():
     """获取本机在局域网中的 IP 地址"""
@@ -59,6 +60,7 @@ app.include_router(outline_router)
 app.include_router(node_router)
 app.include_router(question_router)
 app.include_router(practice_router)
+app.include_router(course_router)
 
 from src.core.auth.fastapi_users import fastapi_users
 from src.core.auth.jwt import auth_backend

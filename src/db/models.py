@@ -143,6 +143,54 @@ class QuestionAnswer(Base):
 
 
 # ==========================================
+# 课程系统相关表
+# ==========================================
+
+class Course(Base):
+    """课程表 (班级主体)"""
+    __tablename__ = "course"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True, comment="主键")
+    name = Column(String(255), nullable=False, comment="课程名称")
+    desc = Column(Text, nullable=True, comment="课程描述")
+    code = Column(String(50), unique=True, index=True, nullable=False, comment="课程码 (邀请码)")
+    is_active = Column(Boolean, default=True, comment="是否激活该课程")
+    created_at = Column(DateTime, default=func.now(), comment="创建时间")
+    creator_id = Column(Integer, ForeignKey("user.id"), nullable=False, comment="创建者 ID")
+
+    # 关联
+    creator = relationship("User", foreign_keys=[creator_id], backref="created_courses")
+    users = relationship("CourseUserMapping", back_populates="course", cascade="all, delete-orphan")
+    outlines = relationship("CourseOutlineMapping", back_populates="course", cascade="all, delete-orphan")
+
+
+class CourseUserMapping(Base):
+    """课程-用户关联表 (学生加入或教师管理)"""
+    __tablename__ = "course_user_mapping"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    course_id = Column(Integer, ForeignKey("course.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("user.id"), nullable=False)
+    role = Column(String(50), default="student", comment="角色 (teacher, student)")
+    joined_at = Column(DateTime, default=func.now())
+
+    course = relationship("Course", back_populates="users")
+    user = relationship("User", backref="course_mappings")
+
+
+class CourseOutlineMapping(Base):
+    """课程-大纲关联表"""
+    __tablename__ = "course_outline_mapping"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    course_id = Column(Integer, ForeignKey("course.id"), nullable=False)
+    outline_id = Column(Integer, ForeignKey("outline.id"), nullable=False)
+    
+    course = relationship("Course", back_populates="outlines")
+    outline = relationship("Outline", backref="course_mappings")
+
+
+# ==========================================
 # 业务生成表与用户轨迹表
 # ==========================================
 

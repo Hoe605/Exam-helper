@@ -19,13 +19,13 @@
     "title": "Smart Practice",
     "sidebar": {
       "practice": "Practice",
+      "courses": "Courses",
       "auditQueue": "Audit Queue",
       "staging": "Staging",
       "addQuestions": "Add Questions",
       "outlines": "Outlines",
       "masteryDocs": "Mastery Docs",
       "aiLab": "AI Lab",
-      "processAll": "Process All",
       "support": "Support",
       "archive": "Archive",
       "adminConsole": "Admin Console"

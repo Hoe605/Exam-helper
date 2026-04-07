@@ -19,6 +19,7 @@
     "title": "智能练习",
     "sidebar": {
       "practice": "智能练习",
+      "courses": "我的课程",
       "auditQueue": "审核队列",
       "staging": "题目暂存",
       "library": "题库管理",
@@ -26,7 +27,6 @@
       "outlines": "大纲管理",
       "masteryDocs": "掌握文档",
       "aiLab": "AI 实验室",
-      "processAll": "全部入库",
       "support": "帮助支持",
       "archive": "归档",
       "adminConsole": "管理后台"
