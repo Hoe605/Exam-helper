@@ -96,7 +96,6 @@
         "importFile": "Import File",
         "importPrompt": "Supports .md, .txt",
         "processing": "Analyzing Knowledge Map",
-
         "processingDesc": "The AI engine is currently traversing the syllabus document tree and identifying core requirements.",
         "taskMonitor": "Agent Task Monitor",
         "nodesFound": "Nodes Found",
@@ -203,5 +202,107 @@
     "updateUser": "Update User Info",
     "username": "Username",
     "resetPassword": "Reset Password"
+  },
+  "Landing": {
+    "nav": {
+      "product": "Product",
+      "features": "Features",
+      "pricing": "Pricing",
+      "login": "Login",
+      "signup": "Sign Up"
+    },
+    "hero": {
+      "badge": "Next-Gen Exam Prep",
+      "title": "Master Your Exams with Multi-Agent Intelligence.",
+      "desc": "The AI-powered study workspace that ingests your syllabus, debates every question, and maps your path to 100% mastery.",
+      "cta": "Start Your First Session",
+      "demo": "Watch Demo"
+    },
+    "ecosystem": {
+      "title": "The Multi-Agent Ecosystem",
+      "desc": "Our proprietary AI architecture features specialized agents that collaborate to ensure your cognitive success.",
+      "agent1": {
+        "title": "Outline-Agent",
+        "desc": "Syllabus ingestion. Automatically breaks down complex curriculum into digestible knowledge nodes.",
+        "status": "Processing Input"
+      },
+      "agent2": {
+        "title": "Debate-Agent Cluster",
+        "desc": "Collaborative tagging. Multiple AI agents debate the nuances of each question to provide verified insights.",
+        "status": "Active Deliberation"
+      },
+      "agent3": {
+        "title": "Gen-Agent",
+        "desc": "Personalized question generation. Creates targeted challenges based on your unique weak points.",
+        "status": "Synthesis Ready"
+      }
+    },
+    "knowledgeMap": {
+      "title": "Your Brain, Mapped.",
+      "desc": "Visualize your intellectual progress through an interactive neural network. Our Knowledge Map tracks every concept, connection, and mastery level in real-time.",
+      "feature1": "Dynamic Concept Clustering",
+      "feature2": "Prerequisite Path Highlighting",
+      "feature3": "Gap-Detection Analytics"
+    },
+    "diagnostics": {
+      "title": "Real-time AI Diagnostics",
+      "desc": "Move beyond simple \"right or wrong.\" Our diagnostics detect cognitive fallacies, common misconceptions, and optimize your study sessions using scientific Ebbinghaus scheduling.",
+      "stats": {
+        "latency": "Latency",
+        "accuracy": "Accuracy",
+        "chartTitle": "Error Type Analysis"
+      },
+      "feature1": {
+        "title": "Cognitive Error Tracking",
+        "desc": "Identify if your mistakes are calculation-based or fundamental concept gaps."
+      },
+      "feature2": {
+        "title": "Ebbinghaus Scheduling",
+        "desc": "Automated review cycles that launch exactly when your retention is predicted to dip."
+      }
+    },
+    "pricing": {
+      "title": "Investment in Mastery",
+      "subtitle": "Choose the tier that aligns with your academic goals.",
+      "free": {
+        "name": "The Foundation",
+        "price": "Free",
+        "cta": "Start Now",
+        "features": [
+          "Basic Practice Questions",
+          "Single Syllabus Import",
+          "Basic Mastery Stats"
+        ]
+      },
+      "scholar": {
+        "name": "The Professional",
+        "price": "$19/mo",
+        "cta": "Go Pro",
+        "recommended": "Recommended",
+        "features": [
+          "Full Multi-Agent Access",
+          "Unlimited Question Generation",
+          "Advanced Cognitive Maps",
+          "Priority Agent Speed"
+        ]
+      },
+      "institution": {
+        "name": "The Department",
+        "price": "Custom",
+        "cta": "Contact Sales",
+        "features": [
+          "School-wide Ingestion",
+          "LMS Integration",
+          "Dedicated Support"
+        ]
+      }
+    },
+    "footer": {
+      "desc": "Pioneering editorial precision in the age of artificial intelligence for the modern student.",
+      "resources": "Resources",
+      "company": "Company",
+      "connect": "Connect",
+      "copyright": "© 2024 ExamHelper AI. Editorial Precision in Education."
+    }
   }
 }

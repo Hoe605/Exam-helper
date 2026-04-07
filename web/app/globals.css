@@ -7,9 +7,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-inter), var(--font-sans);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-manrope);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -46,7 +46,73 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Brand Colors from Design */
+  --color-brand-primary: #000666;
+  --color-brand-secondary: #0061a4;
+  --color-brand-tertiary: #002104;
+  --color-brand-on-primary: #ffffff;
+  --color-brand-surface-container: #edeeef;
+  --color-brand-inverse-primary: #bdc2ff;
+  --color-brand-surface-container-low: #f3f4f5;
+  --color-brand-on-primary-container: #8690ee;
+  --color-brand-on-secondary-container: #00355c;
+  --color-brand-on-error: #ffffff;
+  --color-brand-on-secondary: #ffffff;
+  --color-brand-background: #f8f9fa;
+  --color-brand-surface-container-lowest: #ffffff;
+  --color-brand-secondary-container: #33a0fd;
+  --color-brand-on-tertiary: #ffffff;
+  --color-brand-tertiary-fixed: #94f990;
+  --color-brand-surface-bright: #f8f9fa;
+  --color-brand-secondary-fixed-dim: #9ecaff;
+  --color-brand-surface-container-high: #e7e8e9;
+  --color-brand-surface-variant: #e1e3e4;
+  --color-brand-on-surface-variant: #454652;
+  --color-brand-on-secondary-fixed-variant: #00497d;
+  --color-brand-error-container: #ffdad6;
+  --color-brand-on-primary-fixed-variant: #343d96;
+  --color-brand-surface-tint: #4c56af;
+  --color-brand-outline-variant: #c6c5d4;
+  --color-brand-primary-fixed: #e0e0ff;
+  --color-brand-primary-container: #1a237e;
+  --color-brand-surface-dim: #d9dadb;
+  --color-brand-secondary-fixed: #d1e4ff;
+  --color-brand-on-tertiary-fixed: #002204;
+  --color-brand-on-tertiary-container: #48ab4d;
+  --color-brand-on-surface: #191c1d;
+  --color-brand-tertiary-container: #00390a;
+  --color-brand-on-secondary-fixed: #001d36;
+  --color-brand-on-tertiary-fixed-variant: #005313;
+  --color-brand-on-background: #191c1d;
+  --color-brand-inverse-surface: #2e3132;
+  --color-brand-tertiary-fixed-dim: #78dc77;
+  --color-brand-surface-container-highest: #e1e3e4;
+  --color-brand-surface: #f8f9fa;
+  --color-brand-on-primary-fixed: #000767;
+  --color-brand-error: #ba1a1a;
+  --color-brand-primary-fixed-dim: #bdc2ff;
+  --color-brand-inverse-on-surface: #f0f1f2;
 }
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+@layer base {
+  html {
+    @apply font-sans;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+}
+
 
 :root {
   --background: oklch(1 0 0);
