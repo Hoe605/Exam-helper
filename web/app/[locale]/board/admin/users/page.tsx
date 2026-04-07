@@ -95,7 +95,7 @@ export default function UserManagementPage() {
 
   // Security check
   useEffect(() => {
-    if (currentUser && !currentUser.is_superuser) {
+    if (currentUser && !currentUser.is_superuser && currentUser.role !== 'admin') {
       router.push('/board');
     }
   }, [currentUser, router]);
@@ -303,7 +303,9 @@ export default function UserManagementPage() {
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs border transition-all ${u.is_superuser
                             ? "bg-amber-500 text-white border-amber-600 shadow-lg shadow-amber-500/20"
-                            : "bg-white text-[#1A237E] border-[#EDEEEF] group-hover:border-[#1A237E]/30"
+                            : u.role === 'admin'
+                              ? "bg-purple-500 text-white border-purple-600 shadow-lg shadow-purple-500/20"
+                              : "bg-white text-[#1A237E] border-[#EDEEEF] group-hover:border-[#1A237E]/30"
                             }`}>
                             {(u.username || u.email || '?')[0].toUpperCase()}
                           </div>
@@ -324,11 +326,13 @@ export default function UserManagementPage() {
                       <TableCell>
                         <Badge className={`rounded-lg uppercase text-[9px] font-black tracking-widest px-3 py-1 border-none shadow-sm ${u.is_superuser
                           ? "bg-amber-100 text-amber-700"
-                          : u.role === 'teacher'
-                            ? "bg-indigo-100 text-indigo-700"
-                            : "bg-zinc-100 text-zinc-700"
+                          : u.role === 'admin'
+                            ? "bg-purple-100 text-purple-700"
+                            : u.role === 'teacher'
+                              ? "bg-indigo-100 text-indigo-700"
+                              : "bg-zinc-100 text-zinc-700"
                           }`}>
-                          {u.is_superuser ? 'Super Admin' : u.role || 'User'}
+                          {u.is_superuser ? 'Super Admin' : u.role === 'admin' ? 'Admin' : u.role || 'User'}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -469,6 +473,7 @@ export default function UserManagementPage() {
                   <SelectContent className="rounded-2xl border-[#EDEEEF] shadow-2xl p-2 font-bold">
                     <SelectItem value="student" className="rounded-xl p-3">Student</SelectItem>
                     <SelectItem value="teacher" className="rounded-xl p-3">Teacher</SelectItem>
+                    <SelectItem value="admin" className="rounded-xl p-3 bg-purple-50 text-purple-700">Admin</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
