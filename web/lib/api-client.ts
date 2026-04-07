@@ -11,13 +11,18 @@ function getAuthHeaders(): Record<string, string> {
 async function handleResponse(response: Response) {
   if (!response.ok) {
     if (response.status === 401) {
-       // Optional: Redirect to login or clear token
+       // 同时清除 token 和 Zustand 持久化状态，避免登录态不一致
        if (typeof window !== 'undefined') {
           localStorage.removeItem('token');
+          localStorage.removeItem('auth-storage');
        }
     }
     const error = await response.json().catch(() => ({ message: response.statusText }));
     throw new Error(error.message || `HTTP error! Status: ${response.status}`);
+  }
+  // 204 No Content 等无响应体的状态码，直接返回 null
+  if (response.status === 204) {
+    return null;
   }
   return response.json();
 }

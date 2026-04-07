@@ -32,18 +32,26 @@ export const useAuthStore = create<AuthState>()(
         set({ user, token, isLoggedIn: true });
       },
       logout: async () => {
-        // Try to logout from server
+        // 尝试服务端登出
         try {
            await authService.logout();
         } catch (e) {
            console.error("Logout failed on server", e);
         }
         
+        // 清除所有持久化状态
+        set({ user: null, token: null, isLoggedIn: false });
+
         if (typeof window !== 'undefined') {
           localStorage.removeItem('token');
-          window.location.href = '/login';
+          localStorage.removeItem('auth-storage');
+
+          // 从当前路径提取 locale 前缀，确保跳转到正确的国际化路由
+          const pathSegments = window.location.pathname.split('/');
+          const supportedLocales = ['zh', 'en'];
+          const currentLocale = supportedLocales.includes(pathSegments[1]) ? pathSegments[1] : 'zh';
+          window.location.href = `/${currentLocale}/login`;
         }
-        set({ user: null, token: null, isLoggedIn: false });
       },
     }),
     {
