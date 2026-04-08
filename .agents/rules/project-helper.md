@@ -16,6 +16,7 @@ API 路径规范：全站“去斜杠”化 (Strict No Trailing Slash)
 正确的写法：@router.get("") 或 @router.get("/stats")。
 错误的写法：@router.get("/") 或 @router.get("/stats/")。
 前端 (Next.js Services):
+避免使用props透传数据,使用store统一管理数据
 Service 层调用路径严禁包含尾部斜杠。
 示例：apiClient.get('/outlines')。
 

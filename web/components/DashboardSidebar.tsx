@@ -34,6 +34,8 @@ export default function DashboardSidebar() {
     fetchStagingData();
   }, [fetchStagingData]);
 
+  const isStudent = user?.role === 'student' && !user?.is_superuser;
+
   const sidebarLinks = [
     { icon: BrainCircuit, label: t('practice'), href: '/board', match: '/board' },
     { icon: AppWindow, label: t('courses'), href: '/board/courses', match: '/board/courses' },
@@ -42,7 +44,12 @@ export default function DashboardSidebar() {
     { icon: Map, label: t('outlines'), href: '/board/outlines', match: '/board/outlines' },
     { icon: FileText, label: t('masteryDocs'), href: '#', match: 'docs' },
     { icon: FlaskConical, label: t('aiLab'), href: '#', match: 'ailab' },
-  ];
+  ].filter(link => {
+    if (isStudent && ['/board/staging', '/board/library', '/board/outlines'].includes(link.href)) {
+      return false;
+    }
+    return true;
+  });
 
 
   return (
