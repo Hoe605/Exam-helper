@@ -36,6 +36,6 @@ export const courseService = {
   },
 
   async linkOutline(courseId: number | string, outlineId: number): Promise<any> {
-    return apiClient.post(`/courses/${courseId}/outlines`, { outlineId });
+    return apiClient.post(`/courses/${courseId}/outlines`, { outline_id: outlineId });
   }
 };
