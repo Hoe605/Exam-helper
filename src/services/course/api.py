@@ -47,6 +47,18 @@ async def list_courses(
     """列出我当前参与的所有课程"""
     return await CourseService.get_user_courses(db, user.id)
 
+@router.get("/{course_id}", response_model=schemas.Course)
+async def get_course(
+    course_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(current_active_user)
+):
+    """获取课程基本信息"""
+    course = await CourseService.get_course(db, course_id)
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    return course
+
 @router.get("/{course_id}/outlines")
 async def get_course_outlines(
     course_id: int,
@@ -55,3 +67,26 @@ async def get_course_outlines(
 ):
     """获取课程关联的所有大纲"""
     return await CourseService.get_course_outlines(db, course_id)
+
+@router.post("/{course_id}/outlines")
+async def link_outline_to_course(
+    course_id: int,
+    outline_id: int = Body(..., embed=True),
+    db: Session = Depends(get_db),
+    user: User = Depends(current_active_user)
+):
+    """将大纲关联至课程 (限教师)"""
+    if user.role not in ["teacher", "admin"]:
+        raise HTTPException(status_code=403, detail="Unauthorized role")
+    return await CourseService.link_outline(db, course_id, outline_id)
+
+@router.get("/{course_id}/students", response_model=List[schemas.CourseStudent])
+async def get_course_students(
+    course_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(current_active_user)
+):
+    """获取课程下属的所有学生列表 (限教师)"""
+    if user.role not in ["teacher", "admin"]:
+        raise HTTPException(status_code=403, detail="Unauthorized role")
+    return await CourseService.get_course_students(db, course_id)

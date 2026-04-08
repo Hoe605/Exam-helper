@@ -96,7 +96,7 @@ export default function DashboardSidebar() {
               </div>
               <div className="flex flex-col overflow-hidden">
                 <span className="text-[10px] font-bold text-[#000666] truncate">{user.email}</span>
-                <span className="text-[9px] font-black uppercase text-rose-500 tracking-[0.1em]">{user.role}</span>
+                <span className="text-[9px] font-black uppercase text-rose-500 tracking-[0.1em]">{user.is_superuser ? 'superadmin' : user.role}</span>
               </div>
             </div>
 
@@ -115,7 +115,7 @@ export default function DashboardSidebar() {
           </Link>
         )}
 
-        {isLoggedIn && user?.is_superuser && (
+        {isLoggedIn && (user?.is_superuser || user?.role === 'admin') && (
           <Link
             href="/board/admin/users"
             className={`flex items-center gap-4 px-4 py-2 text-[10px] font-black uppercase tracking-[0.1em] transition-colors ${pathname.includes('/admin') ? 'text-[#1A237E] bg-[#E0E0FF]/50 rounded-lg' : 'text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg'

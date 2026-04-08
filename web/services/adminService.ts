@@ -20,18 +20,18 @@ export interface UserCreatePayload {
 
 export const adminService = {
   async getUsers(): Promise<AdminUser[]> {
-    return apiClient.get<AdminUser[]>('/users');
+    return apiClient.get<AdminUser[]>('/admin/users');
   },
 
   async createUser(data: UserCreatePayload): Promise<AdminUser> {
-    return apiClient.post<AdminUser>('/users', data);
+    return apiClient.post<AdminUser>('/admin/users', data);
   },
 
   async updateUser(id: number, data: Partial<UserCreatePayload>): Promise<AdminUser> {
-    return apiClient.patch<AdminUser>(`/users/${id}`, data);
+    return apiClient.patch<AdminUser>(`/admin/users/${id}`, data);
   },
 
   async deleteUser(id: number): Promise<void> {
-    return apiClient.delete(`/users/${id}`);
+    return apiClient.delete(`/admin/users/${id}`);
   }
 };

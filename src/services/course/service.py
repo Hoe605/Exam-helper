@@ -123,3 +123,26 @@ class CourseService:
         ).scalars().all()
         
         return list(outlines)
+
+    @staticmethod
+    async def get_course(db: Session, course_id: int) -> Optional[Course]:
+        return db.get(Course, course_id)
+
+    @staticmethod
+    async def get_course_students(db: Session, course_id: int) -> List[User]:
+        mappings = db.execute(
+            select(CourseUserMapping).where(
+                CourseUserMapping.course_id == course_id,
+                CourseUserMapping.role == "student"
+            )
+        ).scalars().all()
+        
+        user_ids = [m.user_id for m in mappings]
+        if not user_ids:
+            return []
+            
+        users = db.execute(
+            select(User).where(User.id.in_(user_ids))
+        ).scalars().all()
+        
+        return list(users)

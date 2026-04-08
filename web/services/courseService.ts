@@ -25,5 +25,17 @@ export const courseService = {
 
   async getCourseOutlines(courseId: number): Promise<any[]> {
     return apiClient.get(`/courses/${courseId}/outlines`);
+  },
+
+  async getCourse(id: number | string): Promise<Course> {
+    return apiClient.get(`/courses/${id}`);
+  },
+
+  async getCourseStudents(id: number | string): Promise<any[]> {
+    return apiClient.get(`/courses/${id}/students`);
+  },
+
+  async linkOutline(courseId: number | string, outlineId: number): Promise<any> {
+    return apiClient.post(`/courses/${courseId}/outlines`, { outlineId });
   }
 };

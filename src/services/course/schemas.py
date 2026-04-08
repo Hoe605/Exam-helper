@@ -21,3 +21,11 @@ class Course(CourseBase):
 
 class CourseJoin(BaseModel):
     code: str
+
+class CourseStudent(BaseModel):
+    id: int
+    email: str
+    role: str
+
+    class Config:
+        from_attributes = True

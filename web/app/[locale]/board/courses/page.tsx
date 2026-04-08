@@ -218,7 +218,11 @@ export default function CoursesPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {courses.map(course => (
-                <div key={course.id} className="group bg-white rounded-[2.5rem] p-10 border border-[#EDEEEF] hover:border-indigo-600/30 hover:shadow-[0_32px_64px_-16px_rgba(26,35,126,0.12)] transition-all duration-500 flex flex-col gap-8 relative overflow-hidden h-[400px]">
+                <div 
+                  key={course.id} 
+                  onClick={() => window.location.href = `/${window.location.pathname.split('/')[1]}/board/courses/${course.id}`}
+                  className="group bg-white rounded-[2.5rem] p-10 border border-[#EDEEEF] hover:border-indigo-600/30 hover:shadow-[0_32px_64px_-16px_rgba(26,35,126,0.12)] transition-all duration-500 flex flex-col gap-8 relative overflow-hidden h-[400px] cursor-pointer"
+                >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600/5 -mr-16 -mt-16 rounded-full blur-3xl group-hover:bg-indigo-600/10 transition-colors" />
                   
                   <div className="flex flex-col gap-4">
@@ -227,7 +231,10 @@ export default function CoursesPage() {
                         <School className="w-8 h-8" />
                       </div>
                       <div 
-                        onClick={() => copyCode(course.code)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          copyCode(course.code);
+                        }}
                         className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-full text-[10px] font-black tracking-[0.15em] text-[#767683] hover:bg-indigo-600 hover:text-white cursor-pointer transition-all duration-300 group/code active:scale-95"
                       >
                         {course.code}
