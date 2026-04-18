@@ -9,7 +9,8 @@ import {
   RefreshCcw,
   BookOpen,
   Filter,
-  CheckCircle2
+  CheckCircle2,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DashboardSidebar from "@/components/DashboardSidebar";
@@ -46,11 +47,13 @@ export default function LibraryPage() {
   const [error, setError] = useState<string | null>(null);
   
   // Filtering
-  const [skip, setSkip] = useState(0);
   const limit = 20;
 
   // Delete Modal
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: number | null }>({ isOpen: false, id: null });
+  // AI Classify Modal
+  const [aiClassifyModalOpen, setAiClassifyModalOpen] = useState(false);
+  const [classifying, setClassifying] = useState(false);
 
   // Fetch Nodes when outline changes
   useEffect(() => {
@@ -91,36 +94,32 @@ export default function LibraryPage() {
     setLoading(true);
     setError(null);
     try {
-      const [questionsData, outlinesData] = await Promise.all([
-        questionService.getLibraryQuestions({ 
+      const currentSkip = isLoadMore ? questions.length : 0;
+      const questionsData = await questionService.getLibraryQuestions({ 
           outline_id: selectedOutlineId,
           node_id: selectedNodeId || undefined,
-          skip: isLoadMore ? skip + limit : 0, 
+          skip: currentSkip, 
           limit 
-        }),
-        outlineService.getOutlines()
-      ]);
+      });
       
       if (isLoadMore) {
         setQuestions(prev => [...prev, ...questionsData.items]);
-        setSkip(prev => prev + limit);
       } else {
         setQuestions(questionsData.items);
-        setSkip(0);
       }
       
       setTotal(questionsData.total);
-      setOutlines(outlinesData);
     } catch (err: any) {
       setError(err.message || 'Unknown error');
     } finally {
       setLoading(false);
     }
-  }, [selectedOutlineId, selectedNodeId, skip]);
+  }, [selectedOutlineId, selectedNodeId, limit, questions.length]);
 
   useEffect(() => {
     fetchData();
-  }, [selectedOutlineId, selectedNodeId, fetchData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedOutlineId, selectedNodeId]);
 
   const handleDelete = useCallback(async () => {
     if (deleteModal.id === null) return;
@@ -148,6 +147,28 @@ export default function LibraryPage() {
     fetchData();
   }, [fetchData]);
 
+  const handleAIClassify = useCallback(async () => {
+    if (!selectedOutlineId) return;
+    
+    setClassifying(true);
+    try {
+      const res = await questionService.classifyUncategorized(selectedOutlineId);
+      toast({ 
+        title: "AI 分类完成", 
+        description: `成功处理 ${res.processed_count} 道题目，其中 ${res.success_count} 道分类成功。` 
+      });
+      fetchData();
+    } catch (err: any) {
+      toast({ 
+        title: "分类失败", 
+        description: err.message || "AI 分类过程中出现错误", 
+        variant: "destructive" 
+      });
+    } finally {
+      setClassifying(false);
+    }
+  }, [selectedOutlineId, fetchData, toast]);
+
   return (
     <div className="flex h-screen bg-[#F8F9FA] text-[#191C1D] overflow-hidden">
       <DashboardSidebar />
@@ -173,7 +194,7 @@ export default function LibraryPage() {
                 onClick={() => fetchData()}
                 className="rounded-2xl h-14 w-14 p-0 border-[#EDEEEF] bg-white shadow-xl shadow-black/5"
               >
-                <RefreshCcw className={`w-4 h-4 ${loading && skip === 0 ? 'animate-spin' : ''}`} />
+                <RefreshCcw className={`w-4 h-4 ${loading && (questions.length === 0) ? 'animate-spin' : ''}`} />
               </Button>
            </div>
         </div>
@@ -206,6 +227,17 @@ export default function LibraryPage() {
                  </div>
 
                  {selectedOutlineId && (
+                   <Button 
+                     onClick={() => setAiClassifyModalOpen(true)}
+                     disabled={classifying || loading}
+                     className="rounded-2xl h-12 px-6 bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-200 flex items-center gap-2 font-black uppercase tracking-widest text-[10px] transition-all"
+                   >
+                     {classifying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                     {classifying ? 'AI 分类中...' : '一键 AI 分类'}
+                   </Button>
+                 )}
+
+                 {selectedOutlineId && (
                    <div className="flex items-center gap-3 bg-white px-6 py-3 rounded-2xl border border-[#EDEEEF] focus-within:ring-2 focus-within:ring-indigo-600/20 transition-all animate-in fade-in slide-in-from-left-2 duration-300">
                       <Filter className="w-4 h-4 text-indigo-600" />
                       <select 
@@ -214,6 +246,7 @@ export default function LibraryPage() {
                         className="text-xs font-black uppercase tracking-widest bg-transparent outline-none cursor-pointer max-w-[200px]"
                       >
                          <option value="">知识点过滤</option>
+                         <option value="-1">未分类题目</option>
                          {nodes.map(n => (
                            <option key={n.id} value={n.id}>{n.name}</option>
                          ))}
@@ -285,6 +318,17 @@ export default function LibraryPage() {
         description="此操作将永久从题库中删除该题目，无法撤销。"
         onConfirm={handleDelete}
         onClose={() => setDeleteModal({ isOpen: false, id: null })}
+      />
+
+      <DeleteConfirmationModal 
+        isOpen={aiClassifyModalOpen}
+        title="确认启动 AI 分类"
+        description="此操作将调用 AI Agent 将所有未分类题目自动归类到对应的章节。这可能需要一些时间。"
+        confirmText="开始分类"
+        cancelText="取消"
+        variant="primary"
+        onConfirm={handleAIClassify}
+        onClose={() => setAiClassifyModalOpen(false)}
       />
     </div>
   );

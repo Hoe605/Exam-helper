@@ -11,7 +11,7 @@ def get_questions(
     limit: int = 100
 ):
     """
-    获分题目列表
+    获取题目列表
     支持大纲过滤、知识点过滤、题型过滤以及分页
     """
     query = db.query(Question).options(
@@ -19,7 +19,12 @@ def get_questions(
         joinedload(Question.mappings).joinedload(QuestionNodeMapping.node)
     )
     
-    if node_id:
+    if node_id == -1:
+        # 特殊逻辑：获取未分类题目（即没有关联任何知识点的题目）
+        query = query.filter(~Question.mappings.any())
+        if outline_id:
+            query = query.filter(Question.outline_id == outline_id)
+    elif node_id:
         # 只要题目关联了指定节点或其子节点，都返回
         query = query.filter(Question.mappings.any(QuestionNodeMapping.node_id == node_id))
     elif outline_id:
@@ -32,6 +37,15 @@ def get_questions(
     items = query.offset(skip).limit(limit).all()
     
     return total, items
+
+def get_uncategorized_question_ids(db: Session, outline_id: int) -> List[int]:
+    """
+    获取指定大纲下所有未分类题目的 ID
+    """
+    return [q.id for q in db.query(Question.id).filter(
+        Question.outline_id == outline_id,
+        ~Question.mappings.any()
+    ).all()]
 
 def get_question_by_id(db: Session, q_id: int):
     """

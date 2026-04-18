@@ -64,11 +64,11 @@ export const questionService = {
 
   async getLibraryQuestions(params: { outline_id?: number; node_id?: number; q_type?: string; skip?: number; limit?: number }): Promise<{ total: number; items: any[] }> {
     const query = new URLSearchParams();
-    if (params.outline_id) query.append('outline_id', params.outline_id.toString());
-    if (params.node_id) query.append('node_id', params.node_id.toString());
+    if (params.outline_id !== undefined && params.outline_id !== null) query.append('outline_id', params.outline_id.toString());
+    if (params.node_id !== undefined && params.node_id !== null) query.append('node_id', params.node_id.toString());
     if (params.q_type) query.append('q_type', params.q_type);
-    if (params.skip) query.append('skip', params.skip.toString());
-    if (params.limit) query.append('limit', params.limit.toString());
+    if (params.skip !== undefined) query.append('skip', params.skip.toString());
+    if (params.limit !== undefined) query.append('limit', params.limit.toString());
     
     return apiClient.get(`/question/library?${query.toString()}`);
   },
@@ -83,6 +83,10 @@ export const questionService = {
 
   async classifyLibraryQuestion(qId: number | string): Promise<any> {
     return apiClient.post(`/question/library/${qId}/classify`, {});
+  },
+
+  async classifyUncategorized(outlineId: number): Promise<any> {
+    return apiClient.post(`/question/library/classify-uncategorized?outline_id=${outlineId}`, {});
   }
 };
 

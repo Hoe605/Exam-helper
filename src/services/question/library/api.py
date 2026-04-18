@@ -62,3 +62,31 @@ async def classify_question(q_id: int):
         )
         
     return result
+
+@router.post("/classify-uncategorized")
+async def classify_uncategorized_questions(
+    outline_id: int = Query(..., description="大纲 ID"),
+    db: Session = Depends(get_db)
+):
+    """
+    一键分类指定大纲下的所有未分类题目
+    """
+    q_ids = crud.get_uncategorized_question_ids(db, outline_id=outline_id)
+    if not q_ids:
+        return {"message": "No uncategorized questions found", "processed_count": 0}
+        
+    results = []
+    for q_id in q_ids:
+        try:
+            res = await classify_sdk.classify_question(q_id=q_id)
+            results.append({"q_id": q_id, "success": res["success"]})
+        except Exception as e:
+            results.append({"q_id": q_id, "success": False, "error": str(e)})
+            
+    success_count = sum(1 for r in results if r["success"])
+    return {
+        "message": f"Processed {len(q_ids)} questions",
+        "processed_count": len(q_ids),
+        "success_count": success_count,
+        "results": results
+    }
