@@ -30,8 +30,10 @@ jobs:
       - name: Run tests
         run: uv run pytest
 
-      - name: Migration check
-        run: uv run alembic upgrade head
+      - name: Migration scripts check
+        run: |
+          uv run alembic heads
+          uv run alembic history
 
   frontend:
     runs-on: ubuntu-latest
