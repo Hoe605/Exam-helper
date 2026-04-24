@@ -1,4 +1,4 @@
-"""描述你的修改
+"""add_outline_status_and_content_fields
 
 Revision ID: 20c8e8cc73fc
 Revises: c6d455a002ed

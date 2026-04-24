@@ -1,4 +1,4 @@
-"""描述你的修改(如：增加is_deleted字段)
+"""refine_user_username_column_type_and_index
 
 Revision ID: 6288407ee7a2
 Revises: 27a17c220348

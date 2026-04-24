@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 from datetime import datetime
 
@@ -16,8 +16,7 @@ class Course(CourseBase):
     created_at: datetime
     creator_id: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class CourseJoin(BaseModel):
     code: str
@@ -27,5 +26,4 @@ class CourseStudent(BaseModel):
     email: str
     role: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
