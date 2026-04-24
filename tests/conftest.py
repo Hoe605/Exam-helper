@@ -1,4 +1,7 @@
 import pytest
+import os
+
+os.environ.setdefault("SECRET_KEY", "test-secret-key-for-ci")
 
 def pytest_addoption(parser):
     """添加自定义命令行参数 --deep"""

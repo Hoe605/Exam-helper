@@ -41,7 +41,7 @@ def update_outline(outline_id: int, outline: schemas.OutlineUpdate, db: Session 
 def delete_outline(outline_id: int, db: Session = Depends(get_db)):
     success = crud.delete_outline(db=db, outline_id=outline_id)
     if not success:
-        raise HTTPException(status_code=444, detail="Outline not found")
+        raise HTTPException(status_code=404, detail="Outline not found")
     return {"message": "Outline deleted successfully"}
 
 @router.post("/extract")

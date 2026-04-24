@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Exam-helper Web
 
-## Getting Started
+前端基于 Next.js 16（App Router）与 TypeScript。
 
-First, run the development server:
+## 包管理器
+
+本目录统一使用 **pnpm**。
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd /home/runner/work/Exam-helper/Exam-helper/web
+corepack enable
+pnpm install --frozen-lockfile
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 开发
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+默认地址：`http://localhost:3000`
 
-## Learn More
+## 环境变量
 
-To learn more about Next.js, take a look at the following resources:
+常用变量：
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `NEXT_PUBLIC_API_URL`：浏览器侧 API 地址（默认 `/api`）
+- `BACKEND_URL`：服务端渲染/代理时访问后端地址（默认 `http://localhost:8000`）
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 校验
 
-## Deploy on Vercel
+```bash
+pnpm lint
+pnpm build
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 代理与路径规范
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- 前端通过 `app/api/[[...slug]]/route.ts` 代理后端请求。
+- API 路径采用无尾斜杠规范。

@@ -1,5 +1,5 @@
 import pytest
-from core.util.prompt_loader import load_prompt, load_prompt_section, load_all_sections
+from core.utils.agent.prompt_loader import load_prompt, load_prompt_section, load_all_sections
 
 def test_load_prompt_with_subdir():
     # 测试常规加载
