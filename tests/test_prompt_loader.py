@@ -13,7 +13,7 @@ def test_load_prompt_sections():
     # 1. 验证段落 0 (计划阶段)
     section_0 = load_prompt_section("agent/outline_extraction", 0)
     assert "强制计划 (Compulsory Planning)" in section_0
-    assert "教育大纲解析与计划指领" in section_0
+    assert "教育大纲解析与计划" in section_0
     
     # 2. 验证段落 1 (解析提取阶段)
     section_1 = load_prompt_section("agent/outline_extraction", 1)

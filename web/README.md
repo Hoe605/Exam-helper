@@ -7,7 +7,7 @@
 本目录统一使用 **pnpm**。
 
 ```bash
-cd /home/runner/work/Exam-helper/Exam-helper/web
+cd web
 corepack enable
 pnpm install --frozen-lockfile
 ```

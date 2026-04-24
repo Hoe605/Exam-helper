@@ -19,7 +19,7 @@
 ### 1) 后端（Python + uv）
 
 ```bash
-cd /home/runner/work/Exam-helper/Exam-helper
+cd <repo-root>
 python -m pip install uv
 ~/.local/bin/uv sync
 cp .env.example .env
@@ -33,7 +33,7 @@ cp .env.example .env
 ### 2) 前端（统一使用 pnpm）
 
 ```bash
-cd /home/runner/work/Exam-helper/Exam-helper/web
+cd web
 corepack enable
 pnpm install --frozen-lockfile
 ```
@@ -47,7 +47,7 @@ pnpm install --frozen-lockfile
 推荐入口（等价）：
 
 ```bash
-cd /home/runner/work/Exam-helper/Exam-helper
+cd <repo-root>
 ~/.local/bin/uv run uvicorn src.services.main:app --reload
 # 或
 ~/.local/bin/uv run python main.py
@@ -58,14 +58,14 @@ cd /home/runner/work/Exam-helper/Exam-helper
 ### 前端
 
 ```bash
-cd /home/runner/work/Exam-helper/Exam-helper/web
+cd web
 pnpm dev
 ```
 
 ## 数据库迁移
 
 ```bash
-cd /home/runner/work/Exam-helper/Exam-helper
+cd <repo-root>
 ~/.local/bin/uv run alembic revision --autogenerate -m "your_change_name"
 ~/.local/bin/uv run alembic upgrade head
 ```
@@ -75,21 +75,21 @@ cd /home/runner/work/Exam-helper/Exam-helper
 ### 后端测试
 
 ```bash
-cd /home/runner/work/Exam-helper/Exam-helper
+cd <repo-root>
 SECRET_KEY=test-secret ~/.local/bin/uv run pytest
 ```
 
 深度测试（会消耗 Token）：
 
 ```bash
-cd /home/runner/work/Exam-helper/Exam-helper
+cd <repo-root>
 SECRET_KEY=test-secret LLM_API_KEY=xxx ~/.local/bin/uv run pytest --deep
 ```
 
 ### 前端质量检查
 
 ```bash
-cd /home/runner/work/Exam-helper/Exam-helper/web
+cd web
 pnpm lint
 pnpm build
 ```
