@@ -21,11 +21,29 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { outlineService } from '@/services/outlineService';
+import { consumeSSE } from '@/lib/stream-client';
 
 
 interface CreateOutlineWizardProps {
   onClose: () => void;
   onComplete: () => void;
+}
+
+interface OutlineStreamPayload {
+  step?: string;
+  node_count?: number;
+  tasks?: Record<string, string>;
+  is_awaiting_review?: boolean;
+  plan?: unknown[];
+  outline_id?: number;
+  snapshot?: {
+    outline_id?: number;
+  };
+  message?: string;
+}
+
+function isOutlineStreamPayload(data: unknown): data is OutlineStreamPayload {
+  return typeof data === 'object' && data !== null;
 }
 
 export default function CreateOutlineWizard({ onClose, onComplete }: CreateOutlineWizardProps) {
@@ -42,7 +60,7 @@ export default function CreateOutlineWizard({ onClose, onComplete }: CreateOutli
     nodeCount: number;
     tasks: Record<string, string>;
     isAwaitingReview?: boolean;
-    plan?: any[];
+    plan?: unknown[];
   }>({
     step: 'Initializing...',
     nodeCount: 0,
@@ -77,55 +95,38 @@ export default function CreateOutlineWizard({ onClose, onComplete }: CreateOutli
 
     try {
       const reader = await outlineService.extractOutline({ name, content });
-      const decoder = new TextDecoder();
-      let buffer = '';
+      const handleProgress = (data: unknown) => {
+        if (!isOutlineStreamPayload(data)) return;
 
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const parts = buffer.split('\n\n');
-        buffer = parts.pop() || '';
-
-        for (const part of parts) {
-          const lines = part.split('\n');
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const dataStr = line.slice(6).trim();
-              if (dataStr === '[DONE]') {
-                setStep('form');
-                onComplete();
-                return;
-              }
-              try {
-                const data = JSON.parse(dataStr);
-                if (data.error) {
-                  setError(data.error);
-                  return;
-                }
-                
-                const currentId = data.outline_id || data.snapshot?.outline_id;
-                if (currentId) {
-                  setOutlineId(currentId);
-                }
-
-                setProgress({
-                  step: data.step,
-                  nodeCount: data.node_count,
-                  tasks: data.tasks || {},
-                  isAwaitingReview: !!data.is_awaiting_review,
-                  plan: data.plan
-                });
-              } catch (e) {
-                console.error("Parse error on chunk:", dataStr.substring(0, 100) + "...", e);
-              }
-            }
-          }
+        const currentId = data.outline_id || data.snapshot?.outline_id;
+        if (currentId) {
+          setOutlineId(currentId);
         }
-      }
-    } catch (err: any) {
-      setError(err.message || "Extraction failed");
+
+        setProgress({
+          step: data.step || 'processing',
+          nodeCount: data.node_count || 0,
+          tasks: data.tasks || {},
+          isAwaitingReview: !!data.is_awaiting_review,
+          plan: data.plan
+        });
+      };
+
+      await consumeSSE(reader, {
+        progress: handleProgress,
+        review_required: handleProgress,
+        error: (data) => {
+          if (isOutlineStreamPayload(data)) {
+            setError(data.message || "Extraction failed");
+          }
+        },
+        done: () => {
+          setStep('form');
+          onComplete();
+        }
+      });
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Extraction failed");
     }
   };
 
@@ -137,7 +138,7 @@ export default function CreateOutlineWizard({ onClose, onComplete }: CreateOutli
       // 成功后由 StreamingResponse 继续推送状态，这里只需关闭本地提示
       setProgress(prev => ({ ...prev, isAwaitingReview: false }));
       setFeedback('');
-    } catch (err) {
+    } catch {
       alert("Failed to send feedback");
     } finally {
       setIsSubmittingFeedback(false);

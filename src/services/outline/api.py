@@ -5,10 +5,10 @@ from src.db.session import get_db
 from . import crud, schemas
 from .agent_manager import agent_manager
 from src.core.agent.outline.outline_agent import run_outline_extraction_stream
-import json
 import asyncio
 from typing import List
 from fastapi.encoders import jsonable_encoder
+from src.core.streaming import sse_done, sse_error, sse_event
 
 router = APIRouter(
     prefix="/outlines",
@@ -76,16 +76,17 @@ async def extract_outline(
                 msg = await queue.get()
                 
                 if msg == "[DONE]":
-                    yield "data: [DONE]\n\n"
+                    yield sse_done()
                     break
                 
                 if isinstance(msg, dict) and msg.get("error"):
-                    yield f"data: {json.dumps(msg)}\n\n"
+                    yield sse_error(msg["error"])
                     break
 
                 # 使用 jsonable_encoder 处理可能包含 Pydantic 模型的复杂对象
                 clean_msg = jsonable_encoder(msg)
-                yield f"data: {json.dumps(clean_msg)}\n\n"
+                event_name = "review_required" if clean_msg.get("is_awaiting_review") else "progress"
+                yield sse_event(event_name, clean_msg)
                 
                 # 记录队列处理完成
                 queue.task_done()

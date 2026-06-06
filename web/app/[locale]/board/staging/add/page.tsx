@@ -8,7 +8,6 @@ import {
   Send, 
   Loader2, 
   CheckCircle2, 
-  AlertCircle,
   FileText,
   Cpu,
   Layers,
@@ -19,13 +18,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from '@/i18n/routing';
 
 import { outlineService, Outline } from '@/services/outlineService';
 import { questionService } from '@/services/questionService';
+import { consumeSSE } from '@/lib/stream-client';
 
 interface StepStatus {
   step: string;
@@ -35,6 +34,17 @@ interface StepStatus {
   isCompleted: boolean;
 }
 
+interface QuestionExtractStreamPayload {
+  step?: string;
+  count?: number;
+  total_chunks?: number;
+  processed_chunks?: number;
+  message?: string;
+}
+
+function isQuestionExtractStreamPayload(data: unknown): data is QuestionExtractStreamPayload {
+  return typeof data === 'object' && data !== null;
+}
 
 export default function QuestionAddPage() {
   const t = useTranslations('Practice.add');
@@ -107,75 +117,51 @@ export default function QuestionAddPage() {
         outline_id: selectedOutlineId,
         type: selectedType
       });
-      const decoder = new TextDecoder();
 
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
+      await consumeSSE(reader, {
+        progress: (payload) => {
+          if (!isQuestionExtractStreamPayload(payload) || !payload.step) return;
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n');
+          setSteps(prev => prev.map(s => {
+            const isCurrent = s.step === payload.step;
+            const stepOrder = ['slicer', 'extractor', 'saver'];
+            const currentIdx = stepOrder.indexOf(payload.step || '');
+            const sIdx = stepOrder.indexOf(s.step);
+            const isAllDone = (payload.processed_chunks || 0) >= (payload.total_chunks || 0) && (payload.total_chunks || 0) > 0;
 
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const dataStr = line.slice(6).trim();
-            if (dataStr === '[DONE]') {
-              setSteps(prev => prev.map(s => ({ ...s, isProcessing: false, isCompleted: true })));
-              toast({ title: "Extraction Complete", description: "Questions successfully imported to staging pool." });
-              setIsExtracting(false);
-              continue;
+            if (isCurrent) {
+              return {
+                ...s,
+                isProcessing: !isAllDone,
+                isCompleted: isAllDone,
+                count: payload.count || s.count
+              };
             }
 
-            try {
-              const data = JSON.parse(dataStr);
-              if (data.error) {
-                toast({ title: "Agent Error", description: data.error, variant: "destructive" });
-                setIsExtracting(false);
-                break;
-              }
-
-              // Update Step Progress
-              setSteps(prev => prev.map(s => {
-                const isCurrent = s.step === data.step;
-                
-                // 标记之前的步骤为已完成
-                const stepOrder = ['slicer', 'extractor', 'saver'];
-                const currentIdx = stepOrder.indexOf(data.step);
-                const sIdx = stepOrder.indexOf(s.step);
-                
-                if (isCurrent) {
-                  // 如果是 saver 节点，检查是否整体完成
-                  if (data.step === 'saver') {
-                    const isAllDone = data.processed_chunks >= data.total_chunks && data.total_chunks > 0;
-                    return { 
-                      ...s, 
-                      isProcessing: !isAllDone, 
-                      isCompleted: isAllDone,
-                      count: data.count || s.count 
-                    };
-                  }
-                  return { ...s, isProcessing: true, isCompleted: false, count: data.count || s.count };
-                }
-                
-                if (sIdx < currentIdx) {
-                   // 如果正在循环提取，不能把 saver 标记为 completed 除非真的完了
-                   if (s.step === 'extractor' && data.step === 'saver') {
-                      const isAllDone = data.processed_chunks >= data.total_chunks && data.total_chunks > 0;
-                      return { ...s, isProcessing: !isAllDone, isCompleted: isAllDone };
-                   }
-                   return { ...s, isProcessing: false, isCompleted: true };
-                }
-                
-                return s;
-              }));
-            } catch (pErr) {
-               // JSON parse error (potentially partial chunk)
+            if (sIdx < currentIdx) {
+              return { ...s, isProcessing: false, isCompleted: true };
             }
-          }
+
+            return s;
+          }));
+        },
+        error: (payload) => {
+          const message = isQuestionExtractStreamPayload(payload) ? payload.message : "Agent error";
+          toast({ title: "Agent Error", description: message || "Agent error", variant: "destructive" });
+          setIsExtracting(false);
+        },
+        done: () => {
+          setSteps(prev => prev.map(s => ({ ...s, isProcessing: false, isCompleted: true })));
+          toast({ title: "Extraction Complete", description: "Questions successfully imported to staging pool." });
+          setIsExtracting(false);
         }
-      }
-    } catch (err: any) {
-      toast({ title: "Network Error", description: err.message, variant: "destructive" });
+      });
+    } catch (err: unknown) {
+      toast({
+        title: "Network Error",
+        description: err instanceof Error ? err.message : "Unknown network error",
+        variant: "destructive"
+      });
       setIsExtracting(false);
     }
   };

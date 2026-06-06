@@ -2,6 +2,7 @@ import logging
 from sqlalchemy.orm import Session
 from .graph import build_generate_agent
 from .util.node import normalize_node_to_md
+from src.core.streaming import sse_done, sse_error, sse_event
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ class GenerateAgentSDK:
         node_md = normalize_node_to_md(db, node_id)
         if not node_md:
             logger.error(f"Node {node_id} not found when generating question.")
-            yield f"[ERROR]: 未找到该知识点 (Node ID: {node_id})"
+            yield sse_error(f"未找到该知识点 (Node ID: {node_id})")
             return
 
         # 2. 初始化初始状态
@@ -61,7 +62,8 @@ class GenerateAgentSDK:
                 ):
                     chunk = event["data"]["chunk"]
                     if chunk.content:
-                        yield chunk.content
+                        yield sse_event("token", {"content": chunk.content})
+            yield sse_done()
         except Exception as e:
             logger.exception("Error during agent generation stream.")
-            yield f"\n[ERROR]: Agent 运行异常: {str(e)}"
+            yield sse_error(f"Agent 运行异常: {str(e)}")

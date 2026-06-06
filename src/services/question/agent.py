@@ -3,9 +3,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from src.db.session import get_db
 from src.core.agent.question.extract.extract_agent import run_question_extraction_stream
-import json
-import asyncio
-from fastapi.encoders import jsonable_encoder
+from src.core.streaming import sse_done, sse_error, sse_event
 
 router = APIRouter(
     tags=["question-agent"]
@@ -29,14 +27,15 @@ async def extract_questions(
                 msg = {
                     "step": update["step"],
                     "count": update["count"],
+                    "total_chunks": update.get("total_chunks", 0),
+                    "processed_chunks": update.get("processed_chunks", 0),
                     "db_response": update["db_response"],
                     "errors": update["errors"]
                 }
-                yield f"data: {json.dumps(jsonable_encoder(msg), ensure_ascii=False)}\n\n"
+                yield sse_event("progress", msg)
             
-            yield "data: [DONE]\n\n"
+            yield sse_done()
         except Exception as e:
-            error_msg = {"error": str(e), "step": "error"}
-            yield f"data: {json.dumps(error_msg, ensure_ascii=False)}\n\n"
+            yield sse_error(str(e), step="error")
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")

@@ -4,6 +4,7 @@ import { outlineService, Outline } from '@/services/outlineService';
 import { nodeService, KnowledgeNode } from '@/services/nodeService';
 import { courseService, Course } from '@/services/courseService';
 import { practiceService } from '@/services/practiceService';
+import { consumeSSE } from '@/lib/stream-client';
 
 interface PracticeState {
   // Persisted data
@@ -34,6 +35,15 @@ interface PracticeState {
   fetchNodes: (outlineId: number) => Promise<void>;
   handleGenerate: () => Promise<void>;
   resetPractice: () => void;
+}
+
+interface TokenPayload {
+  content?: string;
+  message?: string;
+}
+
+function isTokenPayload(data: unknown): data is TokenPayload {
+  return typeof data === 'object' && data !== null;
 }
 
 export const usePracticeStore = create<PracticeState>()(
@@ -103,16 +113,18 @@ export const usePracticeStore = create<PracticeState>()(
         
         try {
           const reader = await practiceService.generatePracticeStream(selectedNode, difficulty, qType);
-          const decoder = new TextDecoder();
-          
           let fullContent = '';
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            const chunk = decoder.decode(value);
-            fullContent += chunk;
-            set({ generatedContent: fullContent });
-          }
+          await consumeSSE(reader, {
+            token: (payload) => {
+              if (!isTokenPayload(payload) || !payload.content) return;
+              fullContent += payload.content;
+              set({ generatedContent: fullContent });
+            },
+            error: (payload) => {
+              const message = isTokenPayload(payload) ? payload.message : 'Error during generation';
+              set({ generatedContent: `${fullContent}\n[${message || 'Error during generation'}]` });
+            }
+          });
         } catch (err) {
           console.error("Generation error:", err);
           set({ generatedContent: generatedContent + '\n[Error during generation]' });
