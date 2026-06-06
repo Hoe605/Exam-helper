@@ -4,7 +4,7 @@ export interface StagingQuestion {
   id: number;
   q_type: string;
   context: string;
-  options?: any;
+  options?: Record<string, unknown>;
   status: string;
   is_warning: boolean;
   warning_reason?: string;
@@ -20,6 +20,23 @@ export interface StagingStats {
   pending: number;
   warning: number;
   approved: number;
+}
+
+export interface QuestionClassifyResult {
+  success: boolean;
+  errors?: string[];
+  [key: string]: unknown;
+}
+
+export interface UncategorizedClassifyResult {
+  message: string;
+  processed_count: number;
+  success_count?: number;
+  results?: Array<{
+    q_id: number;
+    success: boolean;
+    error?: string;
+  }>;
 }
 
 export const questionService = {
@@ -58,11 +75,11 @@ export const questionService = {
     return apiClient.post('/question/staging/reject-all', {});
   },
 
-  async extractQuestions(data: { content: string; outline_id: number; type?: string }): Promise<ReadableStreamDefaultReader<Uint8Array>> {
-    return apiClient.fetchStream('/question/agent/extract', data);
+  async extractQuestions(data: { content: string; outline_id: number; type?: string }, options?: RequestInit): Promise<ReadableStreamDefaultReader<Uint8Array>> {
+    return apiClient.fetchStream('/question/agent/extract', data, options);
   },
 
-  async getLibraryQuestions(params: { outline_id?: number; node_id?: number; q_type?: string; skip?: number; limit?: number }): Promise<{ total: number; items: any[] }> {
+  async getLibraryQuestions(params: { outline_id?: number; node_id?: number; q_type?: string; skip?: number; limit?: number }): Promise<{ total: number; items: StagingQuestion[] }> {
     const query = new URLSearchParams();
     if (params.outline_id !== undefined && params.outline_id !== null) query.append('outline_id', params.outline_id.toString());
     if (params.node_id !== undefined && params.node_id !== null) query.append('node_id', params.node_id.toString());
@@ -73,21 +90,19 @@ export const questionService = {
     return apiClient.get(`/question/library?${query.toString()}`);
   },
 
-  async getQuestionDetail(qId: number | string): Promise<any> {
-    return apiClient.get(`/question/library/${qId}`);
+  async getQuestionDetail(qId: number | string): Promise<StagingQuestion> {
+    return apiClient.get<StagingQuestion>(`/question/library/${qId}`);
   },
 
   async deleteLibraryQuestion(qId: number | string): Promise<void> {
     return apiClient.delete(`/question/library/${qId}`);
   },
 
-  async classifyLibraryQuestion(qId: number | string): Promise<any> {
-    return apiClient.post(`/question/library/${qId}/classify`, {});
+  async classifyLibraryQuestion(qId: number | string): Promise<QuestionClassifyResult> {
+    return apiClient.post<QuestionClassifyResult>(`/question/library/${qId}/classify`, {});
   },
 
-  async classifyUncategorized(outlineId: number): Promise<any> {
-    return apiClient.post(`/question/library/classify-uncategorized?outline_id=${outlineId}`, {});
+  async classifyUncategorized(outlineId: number): Promise<UncategorizedClassifyResult> {
+    return apiClient.post<UncategorizedClassifyResult>(`/question/library/classify-uncategorized?outline_id=${outlineId}`, {});
   }
 };
-
-

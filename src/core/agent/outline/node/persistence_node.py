@@ -34,7 +34,8 @@ def persistence_node(state: OutlineState):
         result_msg = submit_outline_extraction_tool.invoke({
             "nodes": flat_nodes, 
             "name": outline_name, 
-            "description": outline_desc
+            "description": outline_desc,
+            "outline_id": state.get("outline_id"),
         })
         # [DEBUG] print(f"📌 持久化结果: {result_msg}")
         return {} 

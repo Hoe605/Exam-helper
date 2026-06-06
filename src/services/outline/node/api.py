@@ -28,7 +28,7 @@ def read_node(node_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Node not found")
     return db_node
 
-@router.post("/", response_model=schemas.Node)
+@router.post("", response_model=schemas.Node)
 def create_node(node: schemas.NodeCreate, db: Session = Depends(get_db)):
     return crud.create_node(db=db, node=node)
 

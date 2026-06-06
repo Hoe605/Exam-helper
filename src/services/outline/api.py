@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException, Body, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from src.db.session import get_db
@@ -8,7 +8,7 @@ from src.core.agent.outline.outline_agent import run_outline_extraction_stream
 import asyncio
 from typing import List
 from fastapi.encoders import jsonable_encoder
-from src.core.streaming import sse_done, sse_error, sse_event
+from src.core.streaming import StreamRun
 
 router = APIRouter(
     prefix="/outlines",
@@ -46,6 +46,7 @@ def delete_outline(outline_id: int, db: Session = Depends(get_db)):
 
 @router.post("/extract")
 async def extract_outline(
+    request: Request,
     name: str = Body(..., embed=True), 
     content: str = Body(..., embed=True), 
     db: Session = Depends(get_db)
@@ -64,29 +65,42 @@ async def extract_outline(
                 await agent_manager.push_message(outline_id, event)
             # 任务彻底结束标识
             await agent_manager.push_message(outline_id, "[DONE]")
+        except asyncio.CancelledError:
+            raise
         except Exception as e:
             await agent_manager.push_message(outline_id, {"error": str(e)})
 
-    asyncio.create_task(run_agent_task())
+    task = asyncio.create_task(run_agent_task())
+    agent_manager.set_task(outline_id, task)
     
     async def event_generator():
+        stream = StreamRun(resource_ids={"outline_id": outline_id})
         try:
             while True:
+                if await request.is_disconnected():
+                    agent_manager.cancel_task(outline_id)
+                    break
+
                 # 非阻塞地等待队列中的消息
-                msg = await queue.get()
+                try:
+                    msg = await asyncio.wait_for(queue.get(), timeout=1)
+                except asyncio.TimeoutError:
+                    continue
                 
                 if msg == "[DONE]":
-                    yield sse_done()
+                    yield stream.done()
                     break
                 
                 if isinstance(msg, dict) and msg.get("error"):
-                    yield sse_error(msg["error"])
+                    yield stream.error(msg["error"])
                     break
 
                 # 使用 jsonable_encoder 处理可能包含 Pydantic 模型的复杂对象
                 clean_msg = jsonable_encoder(msg)
-                event_name = "review_required" if clean_msg.get("is_awaiting_review") else "progress"
-                yield sse_event(event_name, clean_msg)
+                if clean_msg.get("is_awaiting_review"):
+                    yield stream.review_required(clean_msg)
+                else:
+                    yield stream.progress(clean_msg)
                 
                 # 记录队列处理完成
                 queue.task_done()
@@ -105,3 +119,11 @@ async def send_agent_feedback(
     """【真格的续作】通过该接口提交用户审核，恢复 Agent 运行"""
     agent_manager.set_feedback(outline_id, feedback)
     return {"message": "Feedback received, agent resumed"}
+
+
+@router.post("/{outline_id}/cancel")
+async def cancel_outline_extraction(outline_id: int):
+    """取消正在运行或等待审核的 Outline Agent。"""
+    cancelled = agent_manager.cancel_task(outline_id)
+    agent_manager.clear_all(outline_id)
+    return {"message": "Cancellation requested", "cancelled": cancelled}

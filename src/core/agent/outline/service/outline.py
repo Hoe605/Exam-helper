@@ -1,20 +1,39 @@
-from typing import List
+from typing import List, Optional
 from src.db.session import SessionLocal
 from src.db.models import Outline, Node
 
-def save_outline_to_db(nodes: List[any], name: str, description: str) -> str:
+def save_outline_to_db(
+    nodes: List[any],
+    name: str,
+    description: str,
+    outline_id: Optional[int] = None,
+) -> str:
     """
     将考纲节点列表持久化到数据库，自动建立层级关系。
     """
     db = SessionLocal()
     try:
         with db.begin():
-            # 1. 创建大纲主记录
-            o = Outline(name=name, desc=description)
-            db.add(o)
-            db.flush()
+            if outline_id is not None:
+                o = db.query(Outline).filter(Outline.id == outline_id).first()
+                if not o:
+                    raise ValueError(f"Outline ID {outline_id} 不存在")
 
-            # 2. 批量创建节点并记录映射关系
+                o.name = name
+                o.desc = description
+                o.status = "Draft"
+                existing_roots = db.query(Node).filter(
+                    Node.outline_id == outline_id,
+                    Node.f_node.is_(None),
+                ).all()
+                for node in existing_roots:
+                    db.delete(node)
+                db.flush()
+            else:
+                o = Outline(name=name, desc=description)
+                db.add(o)
+                db.flush()
+
             name_to_id = {}
             for n in nodes:
                 db_node = Node(
@@ -27,7 +46,6 @@ def save_outline_to_db(nodes: List[any], name: str, description: str) -> str:
                 db.flush()  # 获取自增 ID
                 name_to_id[n.name] = db_node.id
 
-            # 3. 建立父子平衡树关系 (基于 parent_name 寻找自增 ID)
             for n in nodes:
                 if n.parent_name and n.parent_name in name_to_id:
                     child_id = name_to_id[n.name]

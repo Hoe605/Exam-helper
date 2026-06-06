@@ -1,15 +1,27 @@
+import {
+  STREAM_EVENTS,
+  KnownStreamEventName,
+  StreamEventName,
+  StreamPayloadFor,
+} from './stream-events';
+
 export interface SSEMessage {
-  event: string;
+  event: StreamEventName;
   data: unknown;
   id?: string;
   retry?: number;
 }
 
-export type SSEHandler = (data: unknown, message: SSEMessage) => void | Promise<void>;
+export type SSEHandler<EventName extends StreamEventName = StreamEventName> = (
+  data: StreamPayloadFor<EventName>,
+  message: SSEMessage & { event: EventName }
+) => void | Promise<void>;
 
-export interface SSEHandlers {
-  [eventName: string]: SSEHandler | undefined;
-}
+export type SSEHandlers = Partial<{
+  [EventName in KnownStreamEventName]: SSEHandler<EventName>;
+}>;
+
+type AnySSEHandler = (data: unknown, message: SSEMessage) => void | Promise<void>;
 
 function parseSSEBlock(block: string): SSEMessage | null {
   const lines = block.split(/\r?\n/);
@@ -56,7 +68,8 @@ function parseSSEBlock(block: string): SSEMessage | null {
 }
 
 async function dispatchMessage(message: SSEMessage, handlers: SSEHandlers) {
-  const handler = handlers[message.event] ?? handlers.message;
+  const handlersByName = handlers as Record<string, AnySSEHandler | undefined>;
+  const handler = handlersByName[message.event] ?? handlersByName[STREAM_EVENTS.message];
   if (handler) {
     await handler(message.data, message);
   }
@@ -82,7 +95,7 @@ export async function consumeSSE(
       if (!message) continue;
 
       await dispatchMessage(message, handlers);
-      if (message.event === 'done') return;
+      if (message.event === STREAM_EVENTS.done) return;
     }
   }
 

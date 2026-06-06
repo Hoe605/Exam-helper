@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { 
   X, 
@@ -22,28 +22,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { outlineService } from '@/services/outlineService';
 import { consumeSSE } from '@/lib/stream-client';
+import { isOutlineReviewRequiredPayload, isStreamErrorPayload, OutlineReviewTask } from '@/lib/stream-events';
 
 
 interface CreateOutlineWizardProps {
   onClose: () => void;
   onComplete: () => void;
-}
-
-interface OutlineStreamPayload {
-  step?: string;
-  node_count?: number;
-  tasks?: Record<string, string>;
-  is_awaiting_review?: boolean;
-  plan?: unknown[];
-  outline_id?: number;
-  snapshot?: {
-    outline_id?: number;
-  };
-  message?: string;
-}
-
-function isOutlineStreamPayload(data: unknown): data is OutlineStreamPayload {
-  return typeof data === 'object' && data !== null;
 }
 
 export default function CreateOutlineWizard({ onClose, onComplete }: CreateOutlineWizardProps) {
@@ -60,7 +44,7 @@ export default function CreateOutlineWizard({ onClose, onComplete }: CreateOutli
     nodeCount: number;
     tasks: Record<string, string>;
     isAwaitingReview?: boolean;
-    plan?: unknown[];
+    plan?: OutlineReviewTask[];
   }>({
     step: 'Initializing...',
     nodeCount: 0,
@@ -71,6 +55,14 @@ export default function CreateOutlineWizard({ onClose, onComplete }: CreateOutli
   const [feedback, setFeedback] = useState('');
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+      abortControllerRef.current = null;
+    };
+  }, []);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -93,10 +85,13 @@ export default function CreateOutlineWizard({ onClose, onComplete }: CreateOutli
     setStep('processing');
     setError(null);
 
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
-      const reader = await outlineService.extractOutline({ name, content });
+      const reader = await outlineService.extractOutline({ name, content }, { signal: controller.signal });
       const handleProgress = (data: unknown) => {
-        if (!isOutlineStreamPayload(data)) return;
+        if (!isOutlineReviewRequiredPayload(data)) return;
 
         const currentId = data.outline_id || data.snapshot?.outline_id;
         if (currentId) {
@@ -116,7 +111,7 @@ export default function CreateOutlineWizard({ onClose, onComplete }: CreateOutli
         progress: handleProgress,
         review_required: handleProgress,
         error: (data) => {
-          if (isOutlineStreamPayload(data)) {
+          if (isStreamErrorPayload(data)) {
             setError(data.message || "Extraction failed");
           }
         },
@@ -126,8 +121,22 @@ export default function CreateOutlineWizard({ onClose, onComplete }: CreateOutli
         }
       });
     } catch (err: unknown) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
       setError(err instanceof Error ? err.message : "Extraction failed");
+    } finally {
+      if (abortControllerRef.current === controller) {
+        abortControllerRef.current = null;
+      }
     }
+  };
+
+  const handleClose = () => {
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+    if (outlineId) {
+      void outlineService.cancelExtraction(outlineId).catch(() => {});
+    }
+    onClose();
   };
 
   const submitFeedback = async (val: string) => {
@@ -161,7 +170,7 @@ export default function CreateOutlineWizard({ onClose, onComplete }: CreateOutli
              {t('desc')}
            </CardDescription>
         </div>
-        <Button variant="ghost" size="icon" onClick={onClose} className="rounded-2xl hover:bg-white hover:shadow-lg transition-all text-[#767683] h-12 w-12">
+        <Button variant="ghost" size="icon" onClick={handleClose} className="rounded-2xl hover:bg-white hover:shadow-lg transition-all text-[#767683] h-12 w-12">
            <X className="w-6 h-6" />
         </Button>
       </CardHeader>
@@ -337,7 +346,7 @@ export default function CreateOutlineWizard({ onClose, onComplete }: CreateOutli
       {/* Footer Actions */}
       {step === 'form' && (
         <CardFooter className="p-10 border-t border-[#EDEEEF] flex justify-end gap-6 bg-slate-50/50">
-           <Button variant="ghost" onClick={onClose} className="rounded-2xl h-14 px-8 font-black uppercase tracking-[0.2em] text-[10px] text-[#767683]">
+           <Button variant="ghost" onClick={handleClose} className="rounded-2xl h-14 px-8 font-black uppercase tracking-[0.2em] text-[10px] text-[#767683]">
              {commonT('actions.cancel')}
            </Button>
            <Button onClick={handleGenerate} disabled={!name || !content} className="bg-[#000666] hover:bg-[#1A237E] text-white rounded-2xl h-14 px-12 font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl shadow-indigo-900/20 flex items-center gap-4 disabled:opacity-30">

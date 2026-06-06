@@ -24,7 +24,7 @@ export const nodeService = {
     desc?: string;
     level: number;
   }): Promise<KnowledgeNode> {
-    return apiClient.post<KnowledgeNode>('/nodes/', data);
+    return apiClient.post<KnowledgeNode>('/nodes', data);
   },
 
   async updateNode(id: number, data: { name: string; desc?: string }): Promise<KnowledgeNode> {

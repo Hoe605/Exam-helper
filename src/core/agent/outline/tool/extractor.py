@@ -20,9 +20,10 @@ def submit_outline_extraction_tool(
     nodes: List[OutlineNode],
     name: str = "默认大纲",
     description: str = "",
+    outline_id: Optional[int] = None,
 ) -> str:
     """
     持久化完整考纲数据到数据库，建立层级关联。
     """
     # 直接调用底层的 DB 业务单元
-    return save_outline_to_db(nodes, name, description)
+    return save_outline_to_db(nodes, name, description, outline_id=outline_id)

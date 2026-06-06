@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { 
   PlusCircle, 
@@ -25,6 +25,7 @@ import { Link } from '@/i18n/routing';
 import { outlineService, Outline } from '@/services/outlineService';
 import { questionService } from '@/services/questionService';
 import { consumeSSE } from '@/lib/stream-client';
+import { isProgressStreamPayload, isStreamErrorPayload } from '@/lib/stream-events';
 
 interface StepStatus {
   step: string;
@@ -32,18 +33,6 @@ interface StepStatus {
   message: string;
   isProcessing: boolean;
   isCompleted: boolean;
-}
-
-interface QuestionExtractStreamPayload {
-  step?: string;
-  count?: number;
-  total_chunks?: number;
-  processed_chunks?: number;
-  message?: string;
-}
-
-function isQuestionExtractStreamPayload(data: unknown): data is QuestionExtractStreamPayload {
-  return typeof data === 'object' && data !== null;
 }
 
 export default function QuestionAddPage() {
@@ -58,6 +47,7 @@ export default function QuestionAddPage() {
   const [selectedType, setSelectedType] = useState('真题');
   const [content, setContent] = useState('');
   const [isExtracting, setIsExtracting] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
   
   // Progress Tracking
   const [steps, setSteps] = useState<StepStatus[]>([
@@ -78,6 +68,13 @@ export default function QuestionAddPage() {
       }
     };
     fetchOutlines();
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+      abortControllerRef.current = null;
+    };
   }, []);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,17 +107,19 @@ export default function QuestionAddPage() {
     setIsExtracting(true);
     // Reset steps
     setSteps(prev => prev.map(s => ({ ...s, isProcessing: false, isCompleted: false, count: 0 })));
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     try {
       const reader = await questionService.extractQuestions({ 
         content, 
         outline_id: selectedOutlineId,
         type: selectedType
-      });
+      }, { signal: controller.signal });
 
       await consumeSSE(reader, {
         progress: (payload) => {
-          if (!isQuestionExtractStreamPayload(payload) || !payload.step) return;
+          if (!isProgressStreamPayload(payload) || !payload.step) return;
 
           setSteps(prev => prev.map(s => {
             const isCurrent = s.step === payload.step;
@@ -146,7 +145,7 @@ export default function QuestionAddPage() {
           }));
         },
         error: (payload) => {
-          const message = isQuestionExtractStreamPayload(payload) ? payload.message : "Agent error";
+          const message = isStreamErrorPayload(payload) ? payload.message : "Agent error";
           toast({ title: "Agent Error", description: message || "Agent error", variant: "destructive" });
           setIsExtracting(false);
         },
@@ -157,13 +156,24 @@ export default function QuestionAddPage() {
         }
       });
     } catch (err: unknown) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
       toast({
         title: "Network Error",
         description: err instanceof Error ? err.message : "Unknown network error",
         variant: "destructive"
       });
       setIsExtracting(false);
+    } finally {
+      if (abortControllerRef.current === controller) {
+        abortControllerRef.current = null;
+      }
     }
+  };
+
+  const handleAbortExtraction = () => {
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+    setIsExtracting(false);
   };
 
 
@@ -360,7 +370,7 @@ export default function QuestionAddPage() {
                    <div className="pt-2">
                       <Button 
                         variant="ghost" 
-                        onClick={() => setIsExtracting(false)}
+                        onClick={handleAbortExtraction}
                         className="w-full rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 font-black text-[10px] uppercase tracking-widest"
                       >
                          {t('abort')}

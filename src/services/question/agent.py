@@ -3,7 +3,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from src.db.session import get_db
 from src.core.agent.question.extract.extract_agent import run_question_extraction_stream
-from src.core.streaming import sse_done, sse_error, sse_event
+from src.core.streaming import StreamRun
 
 router = APIRouter(
     tags=["question-agent"]
@@ -20,6 +20,7 @@ async def extract_questions(
     启动题目提取 Agent，流式返回提取进度和状态。
     """
     async def event_generator():
+        stream = StreamRun(resource_ids={"outline_id": outline_id})
         try:
             # 这里的 run_question_extraction_stream 是一个异步生成器
             async for update in run_question_extraction_stream(content, outline_id, type):
@@ -32,10 +33,10 @@ async def extract_questions(
                     "db_response": update["db_response"],
                     "errors": update["errors"]
                 }
-                yield sse_event("progress", msg)
+                yield stream.progress(msg)
             
-            yield sse_done()
+            yield stream.done()
         except Exception as e:
-            yield sse_error(str(e), step="error")
+            yield stream.error(str(e), step="error")
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")

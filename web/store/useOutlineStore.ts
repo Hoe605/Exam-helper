@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { outlineService, Outline } from '@/services/outlineService';
 
+export type { Outline } from '@/services/outlineService';
 
 interface OutlineState {
   syllabi: Outline[];
@@ -18,7 +19,7 @@ interface OutlineState {
   // Actions
   fetchSyllabi: () => Promise<void>;
   deleteOutline: (id: number) => Promise<boolean>;
-  createOutline: (data: any) => Promise<boolean>;
+  createOutline: (data: { name: string; desc?: string }) => Promise<boolean>;
   
   // Delete Actions
   openDeleteModal: (config: { title: string, description: string, onConfirm: () => Promise<void> }) => void;
@@ -41,8 +42,8 @@ export const useOutlineStore = create<OutlineState>((set, get) => ({
     try {
       const data = await outlineService.getOutlines();
       set({ syllabi: data, loading: false });
-    } catch (err: any) {
-      set({ error: err.message || "Network Error", loading: false });
+    } catch (err: unknown) {
+      set({ error: err instanceof Error ? err.message : "Network Error", loading: false });
     }
   },
 
@@ -52,13 +53,20 @@ export const useOutlineStore = create<OutlineState>((set, get) => ({
       const newSyllabi = get().syllabi.filter(s => s.id !== id);
       set({ syllabi: newSyllabi });
       return true;
-    } catch (err) {
+    } catch {
       return false;
     }
   },
 
-  createOutline: async (data: any) => {
-    return true; 
+  createOutline: async (data) => {
+    try {
+      const outline = await outlineService.createOutline(data);
+      set(state => ({ syllabi: [outline, ...state.syllabi] }));
+      return true;
+    } catch (err: unknown) {
+      set({ error: err instanceof Error ? err.message : "Network Error" });
+      return false;
+    }
   },
 
 

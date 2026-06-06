@@ -10,6 +10,8 @@ class OutlineAgentManager:
         self.queues: Dict[int, asyncio.Queue] = {}
         # 存储 用户反馈
         self.feedbacks: Dict[int, str] = {}
+        # 存储 outline_id -> 后台 Agent 任务
+        self.tasks: Dict[int, asyncio.Task] = {}
 
     def get_event(self, outline_id: int) -> asyncio.Event:
         if outline_id not in self.events:
@@ -26,6 +28,19 @@ class OutlineAgentManager:
         if outline_id in self.queues:
             await self.queues[outline_id].put(message)
 
+    def set_task(self, outline_id: int, task: asyncio.Task):
+        """记录后台 Agent 任务，便于断连或显式取消时停止运行。"""
+        self.tasks[outline_id] = task
+
+    def cancel_task(self, outline_id: int) -> bool:
+        """取消后台 Agent 任务。返回是否找到了可取消的任务。"""
+        task = self.tasks.pop(outline_id, None)
+        if not task:
+            return False
+        if not task.done():
+            task.cancel()
+        return True
+
     def set_feedback(self, outline_id: int, feedback: str):
         """应用用户反馈，恢复挂起的 Agent"""
         self.feedbacks[outline_id] = feedback
@@ -39,8 +54,8 @@ class OutlineAgentManager:
 
     def clear_all(self, outline_id: int):
         """任务彻底结束后，清除所有关联资源"""
+        self.cancel_task(outline_id)
         self.clear_feedback(outline_id)
         self.queues.pop(outline_id, None)
 
 agent_manager = OutlineAgentManager()
-

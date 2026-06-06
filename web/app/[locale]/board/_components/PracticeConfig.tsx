@@ -1,6 +1,7 @@
 'use client';
 
-import { Library, BookOpen, RefreshCw, Loader2 } from "lucide-react";
+import { useEffect } from "react";
+import { Library, BookOpen, RefreshCw, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePracticeStore } from '@/store/usePracticeStore';
 
@@ -11,11 +12,16 @@ export default function PracticeConfig() {
     loadingSelection,
     isGenerating,
     handleGenerate,
+    cancelGenerate,
     selectedOutline, setSelectedOutline,
     selectedNode, setSelectedNode,
     difficulty, setDifficulty,
     qType, setQType
   } = usePracticeStore();
+
+  useEffect(() => {
+    return () => cancelGenerate();
+  }, [cancelGenerate]);
 
   return (
     <section className="bg-white rounded-[40px] p-10 border border-[#EDEEEF] shadow-2xl shadow-black/[0.02] max-w-5xl flex flex-col gap-10">
@@ -98,13 +104,17 @@ export default function PracticeConfig() {
 
        <div className="flex justify-center mt-2">
           <Button 
-            onClick={handleGenerate}
-            disabled={!selectedNode || isGenerating}
-            className="h-16 px-16 rounded-[2rem] bg-[#000666] hover:bg-[#1A237E] text-white font-black uppercase tracking-[0.2em] text-[11px] shadow-2xl shadow-indigo-900/30 active:scale-95 transition-all group overflow-hidden relative"
+            onClick={isGenerating ? cancelGenerate : handleGenerate}
+            disabled={!selectedNode && !isGenerating}
+            className={`h-16 px-16 rounded-[2rem] text-white font-black uppercase tracking-[0.2em] text-[11px] shadow-2xl active:scale-95 transition-all group overflow-hidden relative ${
+              isGenerating
+                ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-900/20'
+                : 'bg-[#000666] hover:bg-[#1A237E] shadow-indigo-900/30'
+            }`}
           >
              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-             {isGenerating ? <Loader2 className="w-4 h-4 animate-spin mr-3" /> : <RefreshCw className="w-4 h-4 mr-3 group-hover:rotate-180 transition-transform duration-500" />}
-             {isGenerating ? '正在构建训练环境...' : '立即生成高质量题目'}
+             {isGenerating ? <XCircle className="w-4 h-4 mr-3" /> : <RefreshCw className="w-4 h-4 mr-3 group-hover:rotate-180 transition-transform duration-500" />}
+             {isGenerating ? '停止生成' : '立即生成高质量题目'}
           </Button>
        </div>
     </section>
