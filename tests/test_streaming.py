@@ -2,9 +2,11 @@ import json
 
 from src.core.streaming import (
     STREAM_EVENT_DONE,
+    STREAM_EVENT_ERROR,
     STREAM_EVENT_PROGRESS,
     STREAM_EVENT_TOKEN,
     StreamRun,
+    sse_error,
     sse_done,
     sse_event,
     sse_progress,
@@ -55,6 +57,25 @@ def test_sse_helpers_use_shared_event_names():
     assert done["data"] == {"ok": True}
 
 
+def test_sse_error_uses_standard_payload_shape():
+    error = parse_sse_message(
+        sse_error(
+            "Something failed",
+            code="TEST_FAILURE",
+            recoverable=True,
+            details={"reason": "unit-test"},
+        )
+    )
+
+    assert error["event"] == STREAM_EVENT_ERROR
+    assert error["data"] == {
+        "message": "Something failed",
+        "code": "TEST_FAILURE",
+        "recoverable": True,
+        "details": {"reason": "unit-test"},
+    }
+
+
 def test_stream_run_adds_stable_run_metadata_and_sequence():
     stream = StreamRun(resource_ids={"outline_id": 42}, run_id="test-run")
 
@@ -79,4 +100,27 @@ def test_stream_run_adds_stable_run_metadata_and_sequence():
         "seq": 3,
         "outline_id": 42,
         "ok": True,
+    }
+
+
+def test_stream_run_error_merges_metadata_with_standard_error_shape():
+    stream = StreamRun(resource_ids={"node_id": 7}, run_id="error-run")
+
+    error = parse_sse_message(
+        stream.error(
+            "Generation failed",
+            code="GENERATION_FAILED",
+            details={"difficulty": "hard"},
+        )
+    )
+
+    assert error["event"] == STREAM_EVENT_ERROR
+    assert error["data"] == {
+        "message": "Generation failed",
+        "code": "GENERATION_FAILED",
+        "recoverable": False,
+        "details": {"difficulty": "hard"},
+        "run_id": "error-run",
+        "seq": 1,
+        "node_id": 7,
     }

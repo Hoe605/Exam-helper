@@ -15,6 +15,29 @@ export interface StagingQuestion {
   difficulty?: number;
 }
 
+export interface QuestionNode {
+  id: number;
+  name: string;
+  level?: number | null;
+}
+
+export interface QuestionAnswer {
+  answer_content: string;
+  analysis?: string | null;
+}
+
+export interface LibraryQuestion {
+  id: number;
+  context: string;
+  options?: Record<string, unknown> | null;
+  q_type?: string | null;
+  outline_id?: number | null;
+  type?: string | null;
+  difficulty?: number | null;
+  answer?: QuestionAnswer | null;
+  nodes: QuestionNode[];
+}
+
 export interface StagingStats {
   total: number;
   pending: number;
@@ -79,7 +102,7 @@ export const questionService = {
     return apiClient.fetchStream('/question/agent/extract', data, options);
   },
 
-  async getLibraryQuestions(params: { outline_id?: number; node_id?: number; q_type?: string; skip?: number; limit?: number }): Promise<{ total: number; items: StagingQuestion[] }> {
+  async getLibraryQuestions(params: { outline_id?: number; node_id?: number; q_type?: string; skip?: number; limit?: number }): Promise<{ total: number; items: LibraryQuestion[] }> {
     const query = new URLSearchParams();
     if (params.outline_id !== undefined && params.outline_id !== null) query.append('outline_id', params.outline_id.toString());
     if (params.node_id !== undefined && params.node_id !== null) query.append('node_id', params.node_id.toString());
@@ -90,8 +113,8 @@ export const questionService = {
     return apiClient.get(`/question/library?${query.toString()}`);
   },
 
-  async getQuestionDetail(qId: number | string): Promise<StagingQuestion> {
-    return apiClient.get<StagingQuestion>(`/question/library/${qId}`);
+  async getQuestionDetail(qId: number | string): Promise<LibraryQuestion> {
+    return apiClient.get<LibraryQuestion>(`/question/library/${qId}`);
   },
 
   async deleteLibraryQuestion(qId: number | string): Promise<void> {

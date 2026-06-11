@@ -8,7 +8,6 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogMedia,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { AlertCircle, HelpCircle, Info } from 'lucide-react';
@@ -40,8 +39,6 @@ export default function DeleteConfirmationModal({
   const isSuccess = variant === 'success';
 
   const Icon = isDanger ? AlertCircle : (isPrimary ? HelpCircle : Info);
-  const colorClass = isDanger ? 'rose' : (isPrimary ? 'indigo' : 'emerald');
-
   return (
     <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <AlertDialogContent className="

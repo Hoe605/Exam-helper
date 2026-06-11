@@ -15,7 +15,7 @@ async function proxyHandler(req: NextRequest) {
   
   const path = url.pathname.replace(/^\/api/, '');
   const backendBaseUrl = process.env.BACKEND_URL || 'http://localhost:8000';
-  let targetUrl = `${backendBaseUrl}${path}${queryString ? `?${queryString}` : ''}`;
+  const targetUrl = `${backendBaseUrl}${path}${queryString ? `?${queryString}` : ''}`;
 
   const headers = new Headers(req.headers);
   headers.delete('host');
@@ -27,7 +27,7 @@ async function proxyHandler(req: NextRequest) {
       method: req.method,
       headers: headers,
       body: req.method !== 'GET' && req.method !== 'HEAD' ? req.body : null,
-      // @ts-ignore
+      // @ts-expect-error Edge fetch supports streaming request bodies.
       duplex: 'half',
       redirect: 'manual', // 我们手动接管重定向
     });
@@ -45,7 +45,7 @@ async function proxyHandler(req: NextRequest) {
           method: req.method,
           headers: headers,
           body: req.method !== 'GET' && req.method !== 'HEAD' ? req.body : null,
-          // @ts-ignore
+          // @ts-expect-error Edge fetch supports streaming request bodies.
           duplex: 'half',
         });
       }
@@ -66,7 +66,7 @@ async function proxyHandler(req: NextRequest) {
       statusText: response.statusText,
       headers: resHeaders,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(`[BFF Proxy ERROR]:`, error);
     return NextResponse.json(
       { detail: 'BFF Proxy Error: Could not connect to backend.' },

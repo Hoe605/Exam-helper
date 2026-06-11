@@ -1,11 +1,11 @@
 import { create } from 'zustand';
-import { questionService, StagingQuestion, StagingStats } from '@/services/questionService';
+import { LibraryQuestion, questionService, StagingQuestion, StagingStats } from '@/services/questionService';
 export type { StagingQuestion, StagingStats };
 
 interface DuplicateConfig {
   current: StagingQuestion | null;
   originalId: number | null;
-  originalQuestion: StagingQuestion | null;
+  originalQuestion: StagingQuestion | LibraryQuestion | null;
   selectedId: number | null;
   confirmingSelection: boolean;
   loadingOriginal: boolean;
@@ -85,8 +85,8 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
         questionService.getStagingStats()
       ]);
       set({ stagingQuestions: questions, stagingStats: stats, loading: false });
-    } catch (err: any) {
-      set({ error: err.message, loading: false });
+    } catch (err: unknown) {
+      set({ error: err instanceof Error ? err.message : '加载题目数据失败', loading: false });
     }
   },
 
@@ -95,7 +95,7 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
       await questionService.updateStagingStatus(id, status);
       await get().fetchStagingData(); 
       return true;
-    } catch (err) {
+    } catch {
       return false;
     }
   },
@@ -105,7 +105,7 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
       await questionService.deleteStagingItem(id);
       await get().fetchStagingData();
       return true;
-    } catch (err) {
+    } catch {
       return false;
     }
   },
@@ -153,7 +153,7 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
 
     // Network fallback
     try {
-      let data;
+      let data: StagingQuestion | LibraryQuestion;
       if (isFormal) {
         data = await questionService.getQuestionDetail(originalId);
       } else {
@@ -163,7 +163,7 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
       set(state => ({
         duplicateConfig: { ...state.duplicateConfig, originalQuestion: data, loadingOriginal: false }
       }));
-    } catch (err) {
+    } catch {
       set(state => ({
         duplicateConfig: { ...state.duplicateConfig, loadingOriginal: false }
       }));
@@ -212,7 +212,7 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
       await questionService.resolveDuplicate(keepId, discardId);
       await get().fetchStagingData();
       return true;
-    } catch (err) {
+    } catch {
       return false;
     }
   },
@@ -222,7 +222,7 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
       await questionService.approveAllPending();
       await get().fetchStagingData();
       return true;
-    } catch (err) {
+    } catch {
       return false;
     }
   },
@@ -232,7 +232,7 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
       await questionService.rejectAllConflicts();
       await get().fetchStagingData();
       return true;
-    } catch (err) {
+    } catch {
       return false;
     }
   }

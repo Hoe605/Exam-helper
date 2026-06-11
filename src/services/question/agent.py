@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, Body
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from src.db.session import get_db
+from src.db.models import User
+from src.core.auth.permissions import assert_can_write_outline, require_teacher_or_admin
 from src.core.agent.question.extract.extract_agent import run_question_extraction_stream
 from src.core.streaming import StreamRun
 
@@ -14,11 +16,13 @@ async def extract_questions(
     content: str = Body(..., embed=True),
     outline_id: int = Body(..., embed=True),
     type: str = Body("其他", embed=True),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user: User = Depends(require_teacher_or_admin),
 ):
     """
     启动题目提取 Agent，流式返回提取进度和状态。
     """
+    assert_can_write_outline(db, user, outline_id)
     async def event_generator():
         stream = StreamRun(resource_ids={"outline_id": outline_id})
         try:
@@ -37,6 +41,11 @@ async def extract_questions(
             
             yield stream.done()
         except Exception as e:
-            yield stream.error(str(e), step="error")
+            yield stream.error(
+                str(e),
+                code="QUESTION_EXTRACTION_FAILED",
+                details={"outline_id": outline_id, "type": type},
+                step="error",
+            )
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")

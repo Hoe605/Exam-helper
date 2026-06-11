@@ -1,5 +1,15 @@
 import { apiClient } from '@/lib/api-client';
 
+export interface AuthUser {
+  id: number;
+  email: string;
+  username?: string | null;
+  role: string;
+  is_active: boolean;
+  is_superuser: boolean;
+  is_verified: boolean;
+}
+
 export interface LoginResponse {
   access_token: string;
   token_type: string;
@@ -10,9 +20,9 @@ export const authService = {
     return apiClient.postForm<LoginResponse>('/auth/jwt/login', credentials);
   },
 
-  async getCurrentUser(token?: string): Promise<any> {
+  async getCurrentUser(token?: string): Promise<AuthUser> {
     const options = token ? { headers: { 'Authorization': `Bearer ${token}` } } : {};
-    return apiClient.get('/users/me', options);
+    return apiClient.get<AuthUser>('/users/me', options);
   },
 
   async logout(): Promise<void> {

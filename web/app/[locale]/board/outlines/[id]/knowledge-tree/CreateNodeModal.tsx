@@ -57,8 +57,8 @@ export default function CreateNodeModal({
       setName('');
       setDesc('');
       onClose();
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message || 'Failed to create node', variant: 'destructive' });
+    } catch (err: unknown) {
+      toast({ title: 'Error', description: err instanceof Error ? err.message : 'Failed to create node', variant: 'destructive' });
     } finally {
       setLoading(false);
     }

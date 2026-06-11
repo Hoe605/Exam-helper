@@ -2,27 +2,7 @@
 
 import { useEffect } from 'react';
 import { useCourseStore } from '@/store/useCourseStore';
-import { Loader2 } from 'lucide-react';
-
-function UserIcon(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
-  );
-}
+import { Loader2, User } from 'lucide-react';
 
 interface StudentListProps {
   courseId: string | number;
@@ -54,7 +34,7 @@ export default function StudentList({ courseId }: StudentListProps) {
             className="p-6 bg-[#F8F9FA] rounded-[2rem] flex items-center gap-4 hover:shadow-lg hover:bg-white transition-all border border-transparent hover:border-[#EDEEEF]"
           >
             <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-indigo-600 shadow-sm">
-              <UserIcon className="w-7 h-7" />
+              <User className="w-7 h-7" />
             </div>
             <div className="flex flex-col">
               <span className="text-sm font-black text-[#000666]">{s.email.split('@')[0]}</span>

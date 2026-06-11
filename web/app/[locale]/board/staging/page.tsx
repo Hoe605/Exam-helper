@@ -210,7 +210,6 @@ export default function StagingPage() {
                        onApprove={(id) => handleStatusUpdate(id, 'approved')}
                        onDelete={handleDelete}
                        onViewDuplicate={handleViewDuplicate}
-                       viewDuplicateLabel={t('viewDuplicate')}
                      />
                    </LazyRender>
                  ))}

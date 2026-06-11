@@ -191,7 +191,7 @@ export default function CourseSidebar() {
                <span className="text-[8px] font-black uppercase tracking-[0.2em] text-indigo-200">AI Quick Tip</span>
             </div>
             <p className="text-[10px] text-indigo-50 leading-relaxed font-medium">
-              "您在贝叶斯分析方面的掌握度正在稳步提升。建议下一步挑战具有多个先验概率的综合计算题。"
+              &ldquo;您在贝叶斯分析方面的掌握度正在稳步提升。建议下一步挑战具有多个先验概率的综合计算题。&rdquo;
             </p>
           </div>
         </div>

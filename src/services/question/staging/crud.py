@@ -3,8 +3,18 @@ from src.db.models import QuestionStaging, Question
 from . import schemas
 from typing import List, Optional
 
-def get_staging_questions(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(QuestionStaging).filter(QuestionStaging.status != "approved").order_by(QuestionStaging.created_at.desc()).offset(skip).limit(limit).all()
+def _apply_outline_scope(query, outline_ids: Optional[List[int]]):
+    if outline_ids is None:
+        return query
+    if not outline_ids:
+        return query.filter(False)
+    return query.filter(QuestionStaging.outline_id.in_(outline_ids))
+
+
+def get_staging_questions(db: Session, skip: int = 0, limit: int = 100, outline_ids: Optional[List[int]] = None):
+    query = db.query(QuestionStaging).filter(QuestionStaging.status != "approved")
+    query = _apply_outline_scope(query, outline_ids)
+    return query.order_by(QuestionStaging.created_at.desc()).offset(skip).limit(limit).all()
 
 def get_staging_item(db: Session, staging_id: int):
     return db.query(QuestionStaging).filter(QuestionStaging.id == staging_id).first()
@@ -71,11 +81,12 @@ def delete_staging(db: Session, staging_id: int):
         return True
     return False
 
-def get_staging_stats(db: Session):
-    total = db.query(QuestionStaging).count()
-    pending = db.query(QuestionStaging).filter(QuestionStaging.status == "pending").count()
-    warning = db.query(QuestionStaging).filter(QuestionStaging.status == "warning").count()
-    approved = db.query(QuestionStaging).filter(QuestionStaging.status == "approved").count()
+def get_staging_stats(db: Session, outline_ids: Optional[List[int]] = None):
+    base = _apply_outline_scope(db.query(QuestionStaging), outline_ids)
+    total = base.count()
+    pending = _apply_outline_scope(db.query(QuestionStaging), outline_ids).filter(QuestionStaging.status == "pending").count()
+    warning = _apply_outline_scope(db.query(QuestionStaging), outline_ids).filter(QuestionStaging.status == "warning").count()
+    approved = _apply_outline_scope(db.query(QuestionStaging), outline_ids).filter(QuestionStaging.status == "approved").count()
     return {
         "total": total,
         "pending": pending,
@@ -119,12 +130,13 @@ def resolve_duplicate(db: Session, keep_id: int, discard_id: int):
         db.rollback()
         return False
 
-def approve_all_pending(db: Session) -> int:
+def approve_all_pending(db: Session, outline_ids: Optional[List[int]] = None) -> int:
     """
     一键通过所有非冲突项 (status == 'pending')
     返回成功处理的数量
     """
-    pending_items = db.query(QuestionStaging).filter(QuestionStaging.status == "pending", QuestionStaging.is_warning == False).all()
+    query = db.query(QuestionStaging).filter(QuestionStaging.status == "pending", QuestionStaging.is_warning == False)
+    pending_items = _apply_outline_scope(query, outline_ids).all()
     count = 0
     
     try:
@@ -149,11 +161,12 @@ def approve_all_pending(db: Session) -> int:
         db.rollback()
         raise e
 
-def reject_all_conflicts(db: Session) -> int:
+def reject_all_conflicts(db: Session, outline_ids: Optional[List[int]] = None) -> int:
     """
     一键拒绝（删除）所有冲突项 (is_warning == True)
     """
-    conflict_items = db.query(QuestionStaging).filter(QuestionStaging.is_warning == True).all()
+    query = db.query(QuestionStaging).filter(QuestionStaging.is_warning == True)
+    conflict_items = _apply_outline_scope(query, outline_ids).all()
     count = 0
     try:
         for item in conflict_items:

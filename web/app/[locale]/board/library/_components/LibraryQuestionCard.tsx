@@ -1,7 +1,6 @@
 'use client';
 
-import { Trash2, Eye, ChevronDown, ChevronUp, Tags, Sparkles, User, Loader2 } from 'lucide-react';
-import { Button } from "@/components/ui/button";
+import { Trash2, ChevronDown, ChevronUp, Tags, Sparkles, User, Loader2 } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { 
   DropdownMenu, 
@@ -12,20 +11,18 @@ import {
 import SmartContent from "@/components/SmartContent";
 import { memo, useState } from 'react';
 import { useToast } from "@/hooks/use-toast";
-import { questionService } from "@/services/questionService";
+import { LibraryQuestion, questionService } from "@/services/questionService";
 
 interface LibraryQuestionCardProps {
-  question: any;
+  question: LibraryQuestion;
   onDelete: (id: number) => void;
   onRefresh?: (id?: number) => void;
-  t: any;
 }
 
 export const LibraryQuestionCard = memo(function LibraryQuestionCard({ 
   question: q, 
   onDelete,
-  onRefresh,
-  t
+  onRefresh
 }: LibraryQuestionCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isClassifying, setIsClassifying] = useState(false);
@@ -50,10 +47,10 @@ export const LibraryQuestionCard = memo(function LibraryQuestionCard({
           variant: "destructive"
         });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({ 
         title: "错误", 
-        description: err.message || "分类服务暂时不可用", 
+        description: err instanceof Error ? err.message : "分类服务暂时不可用", 
         variant: "destructive" 
       });
     } finally {
@@ -80,7 +77,7 @@ export const LibraryQuestionCard = memo(function LibraryQuestionCard({
               {/* Knowledge Node Tags */}
               <div className="flex items-center gap-2 flex-wrap">
                  {q.nodes && q.nodes.length > 0 ? (
-                   q.nodes.map((node: any) => (
+                   q.nodes.map((node) => (
                      <Badge 
                        key={node.id} 
                        className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border-none px-3 py-1 rounded-lg font-bold text-[10px] transition-colors flex items-center gap-1.5"
@@ -175,7 +172,7 @@ export const LibraryQuestionCard = memo(function LibraryQuestionCard({
                       {k}
                     </span>
                     <div className="font-medium text-[#000666] flex-1">
-                      <SmartContent content={v as string} className="text-sm" />
+                      <SmartContent content={String(v)} className="text-sm" />
                     </div>
                  </div>
                ))}

@@ -9,10 +9,9 @@ import {
   AlertDialogFooter,
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
-import { Copy, Loader2, AlertTriangle, Check, Trash2, X } from 'lucide-react';
+import { Copy, Loader2, AlertTriangle, Check, X } from 'lucide-react';
 import SmartContent from '@/components/SmartContent';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useQuestionStore } from '@/store/useQuestionStore';
 
 export default function DuplicateComparisonModal() {

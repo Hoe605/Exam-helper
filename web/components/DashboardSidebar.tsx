@@ -1,22 +1,18 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Link, usePathname, useRouter } from '@/i18n/routing';
+import { Link, usePathname } from '@/i18n/routing';
 import { useQuestionStore } from "@/store/useQuestionStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   AppWindow,
   ListTodo,
-  Layers,
   FileText,
   FlaskConical,
   HelpCircle,
   Archive,
-  Menu,
-  ChevronRight,
   BrainCircuit,
   Map,
   LogOut,

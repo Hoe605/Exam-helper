@@ -7,11 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/useAuthStore';
-import { useTranslations } from 'next-intl';
 import { authService } from '@/services/authService';
 
 export default function LoginPage() {
-  const t = useTranslations('Practice.sidebar'); 
   const router = useRouter();
   const setAuth = useAuthStore((state) => state.setAuth);
 
@@ -43,8 +41,8 @@ export default function LoginPage() {
       setAuth(user, access_token);
       router.push('/board'); 
       
-    } catch (err: any) {
-      setError(err.message || '登录发生错误');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '登录发生错误');
     } finally {
       setIsLoading(false);
     }

@@ -35,7 +35,7 @@ function parseSmartTags(content: string) {
     if (startIndex === -1) return '';
 
     const contentStart = startIndex + startTag.length;
-    let endIndex = result.remains.indexOf(endTag, contentStart);
+    const endIndex = result.remains.indexOf(endTag, contentStart);
 
     let blockContent = '';
     let removeEnd = 0;
@@ -180,4 +180,3 @@ export default function SmartContent({ content, className = "" }: SmartContentPr
     </div>
   );
 }
-

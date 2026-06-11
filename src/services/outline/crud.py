@@ -20,14 +20,26 @@ def get_outline(db: Session, outline_id: int):
         return outline
     return None
 
-def get_outlines(db: Session, skip: int = 0, limit: int = 100) -> List[Outline]:
+def get_outlines(
+    db: Session,
+    skip: int = 0,
+    limit: int = 100,
+    outline_ids: Optional[List[int]] = None,
+) -> List[Outline]:
     # Query with node count for multiple outlines
-    results = db.query(
+    query = db.query(
         Outline,
         func.count(Node.id).label("node_count")
     ).outerjoin(Node).filter(
         or_(Outline.is_deleted == False, Outline.is_deleted.is_(None))
-    ).group_by(Outline.id).offset(skip).limit(limit).all()
+    )
+
+    if outline_ids is not None:
+        if not outline_ids:
+            return []
+        query = query.filter(Outline.id.in_(outline_ids))
+
+    results = query.group_by(Outline.id).offset(skip).limit(limit).all()
     
     outlines = []
     for outline, count in results:
@@ -35,11 +47,12 @@ def get_outlines(db: Session, skip: int = 0, limit: int = 100) -> List[Outline]:
         outlines.append(outline)
     return outlines
 
-def create_outline(db: Session, outline: OutlineCreate):
+def create_outline(db: Session, outline: OutlineCreate, teacher_id: Optional[int] = None):
     db_outline = Outline(
         name=outline.name,
         desc=outline.desc,
-        metadata_=outline.metadata
+        metadata_=outline.metadata,
+        teacher_id=teacher_id,
     )
     db.add(db_outline)
     db.commit()

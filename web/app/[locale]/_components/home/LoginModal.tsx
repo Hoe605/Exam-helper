@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { useRouter } from '@/i18n/routing';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -44,8 +43,8 @@ export function LoginModal({ children }: LoginModalProps) {
       setOpen(false); // 关闭弹窗
       router.push('/board'); 
       
-    } catch (err: any) {
-      setError(err.message || '登录发生错误');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '登录发生错误');
     } finally {
       setIsLoading(false);
     }
@@ -142,4 +141,3 @@ export function LoginModal({ children }: LoginModalProps) {
     </Dialog>
   );
 }
-

@@ -2,6 +2,49 @@ const BASE_URL = typeof window === 'undefined'
   ? (process.env.BACKEND_URL || 'http://localhost:8000') // 服务端：调用后端物理地址
   : (process.env.NEXT_PUBLIC_API_URL || '/api');       // 浏览器侧：默认走 /api 代理
 
+export interface ApiErrorPayload {
+  message: string;
+  code?: string;
+  recoverable?: boolean;
+  details?: Record<string, unknown>;
+}
+
+export class ApiError extends Error {
+  code?: string;
+  recoverable?: boolean;
+  details?: Record<string, unknown>;
+  status: number;
+
+  constructor(payload: ApiErrorPayload, status: number) {
+    super(payload.message);
+    this.name = 'ApiError';
+    this.code = payload.code;
+    this.recoverable = payload.recoverable;
+    this.details = payload.details;
+    this.status = status;
+  }
+}
+
+function isErrorPayload(data: unknown): data is ApiErrorPayload {
+  return typeof data === 'object' && data !== null && typeof (data as { message?: unknown }).message === 'string';
+}
+
+function normalizeErrorPayload(data: unknown, fallback: string): ApiErrorPayload {
+  if (isErrorPayload(data)) return data;
+  if (
+    typeof data === 'object' &&
+    data !== null &&
+    isErrorPayload((data as { detail?: unknown }).detail)
+  ) {
+    return (data as { detail: ApiErrorPayload }).detail;
+  }
+  if (typeof data === 'object' && data !== null) {
+    const detail = (data as { detail?: unknown }).detail;
+    if (typeof detail === 'string') return { message: detail };
+  }
+  return { message: fallback };
+}
+
 function getAuthHeaders(): Record<string, string> {
   if (typeof window === 'undefined') return {};
   const token = localStorage.getItem('token');
@@ -18,7 +61,7 @@ async function handleResponse(response: Response) {
        }
     }
     const error = await response.json().catch(() => ({ message: response.statusText }));
-    throw new Error(error.message || `HTTP error! Status: ${response.status}`);
+    throw new ApiError(normalizeErrorPayload(error, `HTTP error! Status: ${response.status}`), response.status);
   }
   // 204 No Content 等无响应体的状态码，直接返回 null
   if (response.status === 204) {
@@ -41,7 +84,7 @@ export const apiClient = {
     return handleResponse(response);
   },
 
-  async post<T>(path: string, body: any, options?: RequestInit): Promise<T> {
+  async post<T>(path: string, body: unknown, options?: RequestInit): Promise<T> {
     const cleanPath = path.endsWith('/') && path.length > 1 ? path.slice(0, -1) : path;
     const response = await fetch(`${BASE_URL}${cleanPath}`, {
       ...options,
@@ -71,7 +114,7 @@ export const apiClient = {
     return handleResponse(response);
   },
 
-  async put<T>(path: string, body: any, options?: RequestInit): Promise<T> {
+  async put<T>(path: string, body: unknown, options?: RequestInit): Promise<T> {
     const cleanPath = path.endsWith('/') && path.length > 1 ? path.slice(0, -1) : path;
     const response = await fetch(`${BASE_URL}${cleanPath}`, {
       ...options,
@@ -86,7 +129,7 @@ export const apiClient = {
     return handleResponse(response);
   },
 
-  async patch<T>(path: string, body: any, options?: RequestInit): Promise<T> {
+  async patch<T>(path: string, body: unknown, options?: RequestInit): Promise<T> {
     const cleanPath = path.endsWith('/') && path.length > 1 ? path.slice(0, -1) : path;
     const response = await fetch(`${BASE_URL}${cleanPath}`, {
       ...options,
@@ -115,7 +158,7 @@ export const apiClient = {
   },
 
   // Special method for streaming requests like outlines/extract or practice generation
-  async fetchStream(path: string, body: any = null, options?: RequestInit): Promise<ReadableStreamDefaultReader<Uint8Array>> {
+  async fetchStream(path: string, body: unknown = null, options?: RequestInit): Promise<ReadableStreamDefaultReader<Uint8Array>> {
     const cleanPath = path.endsWith('/') && path.length > 1 ? path.slice(0, -1) : path;
     const method = options?.method || (body ? 'POST' : 'GET');
     
@@ -137,4 +180,3 @@ export const apiClient = {
     return response.body.getReader();
   }
 };
-

@@ -67,6 +67,24 @@ class OutlineReviewRequiredPayload(ProgressStreamPayload, total=False):
     snapshot: dict[str, Any]
 
 
+def make_error_payload(
+    message: str,
+    *,
+    code: str = "STREAM_ERROR",
+    recoverable: bool = False,
+    details: dict[str, Any] | None = None,
+    **extra: Any,
+) -> StreamErrorPayload:
+    payload: StreamErrorPayload = {
+        "message": message,
+        "code": code,
+        "recoverable": recoverable,
+        "details": details or {},
+    }
+    payload.update(extra)
+    return payload
+
+
 def sse_event(
     event: StreamEventName,
     data: Any = None,
@@ -95,8 +113,24 @@ def sse_done(data: StreamDonePayload | None = None) -> str:
     return sse_event(STREAM_EVENT_DONE, data or {"ok": True})
 
 
-def sse_error(message: str, **extra: Any) -> str:
-    return sse_event(STREAM_EVENT_ERROR, {"message": message, **extra})
+def sse_error(
+    message: str,
+    *,
+    code: str = "STREAM_ERROR",
+    recoverable: bool = False,
+    details: dict[str, Any] | None = None,
+    **extra: Any,
+) -> str:
+    return sse_event(
+        STREAM_EVENT_ERROR,
+        make_error_payload(
+            message,
+            code=code,
+            recoverable=recoverable,
+            details=details,
+            **extra,
+        ),
+    )
 
 
 def sse_progress(data: ProgressStreamPayload | dict[str, Any]) -> str:
@@ -135,8 +169,22 @@ class StreamRun:
     def review_required(self, data: OutlineReviewRequiredPayload | dict[str, Any]) -> str:
         return sse_review_required(self.payload(data))
 
-    def error(self, message: str, **extra: Any) -> str:
-        return sse_error(message, **self.payload(extra))
+    def error(
+        self,
+        message: str,
+        *,
+        code: str = "STREAM_ERROR",
+        recoverable: bool = False,
+        details: dict[str, Any] | None = None,
+        **extra: Any,
+    ) -> str:
+        return sse_error(
+            message,
+            code=code,
+            recoverable=recoverable,
+            details=details,
+            **self.payload(extra),
+        )
 
     def done(self, data: StreamDonePayload | None = None) -> str:
         return sse_done(self.payload(data or {"ok": True}))

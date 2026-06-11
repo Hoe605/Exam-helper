@@ -38,7 +38,11 @@ class GenerateAgentSDK:
         node_md = normalize_node_to_md(db, node_id)
         if not node_md:
             logger.error(f"Node {node_id} not found when generating question.")
-            yield stream.error(f"未找到该知识点 (Node ID: {node_id})")
+            yield stream.error(
+                f"未找到该知识点 (Node ID: {node_id})",
+                code="NODE_NOT_FOUND",
+                details={"node_id": node_id},
+            )
             return
 
         # 2. 初始化初始状态
@@ -68,4 +72,8 @@ class GenerateAgentSDK:
             yield stream.done()
         except Exception as e:
             logger.exception("Error during agent generation stream.")
-            yield stream.error(f"Agent 运行异常: {str(e)}")
+            yield stream.error(
+                f"Agent 运行异常: {str(e)}",
+                code="PRACTICE_GENERATION_FAILED",
+                details={"node_id": node_id, "difficulty": difficulty, "q_type": q_type},
+            )

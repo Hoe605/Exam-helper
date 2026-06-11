@@ -11,12 +11,13 @@ import {
   Handle,
   Position,
   Node,
-  Edge
+  Edge,
+  NodeProps
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import dagre from 'dagre';
 import { motion } from "framer-motion";
-import { useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 import { 
   ChevronDown, 
   ChevronRight, 
@@ -28,12 +29,25 @@ import { Badge } from "@/components/ui/badge";
 
 import { KnowledgeNode } from './types';
 
-const CustomNodeComponent = ({ data, targetPosition, sourcePosition }: any) => {
-  const node = data.nodeData as KnowledgeNode;
+interface CustomNodeData extends Record<string, unknown> {
+  nodeData: KnowledgeNode;
+  isMatch: boolean;
+  isExpanded: boolean;
+  onToggle: (id: number) => void;
+  onEdit: (node: KnowledgeNode) => void;
+  onAddChild: (parentId: number, level: number) => void;
+}
+
+type CustomFlowNode = Node<CustomNodeData, 'custom'>;
+
+const CustomNodeComponent = ({ data, targetPosition, sourcePosition }: NodeProps<CustomFlowNode>) => {
+  const node = data.nodeData;
   const isMatch = data.isMatch;
   const isExpanded = data.isExpanded;
   const hasChildren = node.children && node.children.length > 0;
   const depth = (node.level || 1) - 1; 
+  const targetHandlePosition = targetPosition ?? Position.Top;
+  const sourceHandlePosition = sourcePosition ?? Position.Bottom;
   
   const levelColors = [
     { text: 'text-[#1A237E]', bg: 'bg-[#E0E0FF]', border: 'border-[#1A237E]/20' },
@@ -48,7 +62,7 @@ const CustomNodeComponent = ({ data, targetPosition, sourcePosition }: any) => {
       ${isMatch ? 'ring-4 ring-amber-400/60 shadow-amber-900/10' : 'shadow-black/5 ring-1 ring-[#EDEEEF] hover:ring-[#1A237E]/30'}`}>
       
       {depth > 0 && (
-        <Handle type="target" position={targetPosition} className="w-3 h-3 rounded-full border-2 border-white bg-[#767683]" />
+        <Handle type="target" position={targetHandlePosition} className="w-3 h-3 rounded-full border-2 border-white bg-[#767683]" />
       )}
       
       <div className="flex justify-between items-start mb-3">
@@ -109,7 +123,7 @@ const CustomNodeComponent = ({ data, targetPosition, sourcePosition }: any) => {
       </div>
       
       {hasChildren && isExpanded && (
-        <Handle type="source" position={sourcePosition} className="w-3 h-3 rounded-full border-2 border-white bg-[#1A237E]" />
+        <Handle type="source" position={sourceHandlePosition} className="w-3 h-3 rounded-full border-2 border-white bg-[#1A237E]" />
       )}
     </div>
   );
@@ -120,7 +134,7 @@ const nodeTypes = { custom: CustomNodeComponent };
 const dagreGraph = new dagre.graphlib.Graph();
 dagreGraph.setDefaultEdgeLabel(() => ({}));
 
-const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => {
+const getLayoutedElements = (nodes: CustomFlowNode[], edges: Edge[], direction = 'TB') => {
   const isHorizontal = direction === 'LR';
   dagreGraph.setGraph({ rankdir: direction, nodesep: 120, ranksep: 180 });
   nodes.forEach((node) => dagreGraph.setNode(node.id, { width: 320, height: 160 }));
@@ -155,11 +169,11 @@ export default function GraphView({
   onAddChild: (parentId: number, level: number) => void,
   treeTitle: string 
 }) {
-  const [rfNodes, setRfNodes, onNodesChange] = useNodesState<Node>([]);
+  const [rfNodes, setRfNodes, onNodesChange] = useNodesState<CustomFlowNode>([]);
   const [rfEdges, setRfEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
   useEffect(() => {
-    const flatNodes: Node[] = [];
+    const flatNodes: CustomFlowNode[] = [];
     const flatEdges: Edge[] = [];
     function traverse(node: KnowledgeNode) {
       const isMatch = searchQuery ? node.name.toLowerCase().includes(searchQuery.toLowerCase()) || (node.desc || '').toLowerCase().includes(searchQuery.toLowerCase()) : false;

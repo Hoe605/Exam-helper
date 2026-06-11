@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import DashboardSidebar from "@/components/DashboardSidebar";
 import {
@@ -61,7 +61,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { adminService, AdminUser } from '@/services/adminService';
+import { adminService, AdminUser, UserCreatePayload } from '@/services/adminService';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useRouter } from '@/i18n/routing';
 import { useToast } from "@/hooks/use-toast";
@@ -100,7 +100,7 @@ export default function UserManagementPage() {
     }
   }, [currentUser, router]);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       const data = await adminService.getUsers();
@@ -115,11 +115,11 @@ export default function UserManagementPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [fetchUsers]);
 
   const resetForm = () => {
     setFormData({
@@ -160,11 +160,11 @@ export default function UserManagementPage() {
       setIsAddModalOpen(false);
       resetForm();
       fetchUsers();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Creation Failed:", error);
       toast({
         title: t('createError'),
-        description: error.response?.data?.detail || "请检查账号是否已存在或数据格式是否正确",
+        description: error instanceof Error ? error.message : "请检查账号是否已存在或数据格式是否正确",
         variant: "destructive",
       });
     } finally {
@@ -176,7 +176,7 @@ export default function UserManagementPage() {
     if (!selectedUser) return;
     setIsSubmitting(true);
     try {
-      const payload: any = {
+      const payload: UserCreatePayload = {
         email: formData.email,
         username: formData.username || null,
         role: formData.role,
@@ -196,7 +196,7 @@ export default function UserManagementPage() {
       setIsEditModalOpen(false);
       resetForm();
       fetchUsers();
-    } catch (error) {
+    } catch {
       toast({
         title: "更新失败",
         variant: "destructive",
@@ -214,7 +214,7 @@ export default function UserManagementPage() {
         title: "用户已删除",
       });
       setUsers(users.filter(u => u.id !== deleteId));
-    } catch (error) {
+    } catch {
       toast({
         title: "删除失败",
         variant: "destructive",

@@ -1,7 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
-import { useEffect, useState, use } from 'react';
+import { useCallback, useEffect, useState, use } from 'react';
 import {
    Loader2,
    ChevronLeft,
@@ -43,7 +42,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
 
    const isTeacher = user?.role === 'teacher' || user?.role === 'admin';
 
-   const fetchData = async () => {
+   const fetchData = useCallback(async () => {
       try {
          setLoading(true);
          const [courseData, outlinesData] = await Promise.all([
@@ -57,16 +56,16 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
             const allOutlinesData = await outlineService.getOutlines();
             setAllOutlines(allOutlinesData);
          }
-      } catch (err) {
+      } catch {
          toast({ title: "Error", description: "Failed to load course details", variant: "destructive" });
       } finally {
          setLoading(false);
       }
-   };
+   }, [id, isTeacher, toast]);
 
    useEffect(() => {
       fetchData();
-   }, [id, isTeacher]);
+   }, [fetchData]);
 
    const handleLinkOutline = async (outlineId: number) => {
       try {
@@ -74,7 +73,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
          await courseService.linkOutline(id, outlineId);
          toast({ title: "Success", description: "Outline linked to course" });
          fetchData();
-      } catch (err) {
+      } catch {
          toast({ title: "Error", description: "Failed to link outline", variant: "destructive" });
       } finally {
          setLinking(false);

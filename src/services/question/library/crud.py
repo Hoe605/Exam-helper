@@ -5,6 +5,7 @@ from typing import List, Optional
 def get_questions(
     db: Session, 
     outline_id: Optional[int] = None, 
+    outline_ids: Optional[List[int]] = None,
     node_id: Optional[int] = None,
     q_type: Optional[str] = None,
     skip: int = 0, 
@@ -19,6 +20,11 @@ def get_questions(
         joinedload(Question.mappings).joinedload(QuestionNodeMapping.node)
     )
     
+    if outline_ids is not None:
+        if not outline_ids:
+            return 0, []
+        query = query.filter(Question.outline_id.in_(outline_ids))
+
     if node_id == -1:
         # 特殊逻辑：获取未分类题目（即没有关联任何知识点的题目）
         query = query.filter(~Question.mappings.any())

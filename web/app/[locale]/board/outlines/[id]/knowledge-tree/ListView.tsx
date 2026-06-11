@@ -8,8 +8,7 @@ import {
   GitBranch, 
   BookOpen, 
   TreePine,
-  Pencil,
-  Plus
+  Pencil
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -169,7 +168,7 @@ export default function ListView({
            </h1>
            {outline?.desc && (
               <p className="text-[#767683] text-lg font-medium leading-relaxed max-w-3xl italic opacity-70">
-                 "{outline.desc}"
+                 &quot;{outline.desc}&quot;
               </p>
            )}
 

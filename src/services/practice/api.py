@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from src.db.session import get_db
+from src.db.models import User
+from src.core.auth.permissions import assert_can_read_node, require_authenticated
 from src.core.agent.question.generate.generate_agent import GenerateAgentSDK
 
 router = APIRouter(
@@ -17,7 +19,8 @@ async def generate_practice_stream(
     node_id: int = Query(..., description="知识点 ID"),
     difficulty: str = Query("中等", description="难度 (简单, 中等, 困难)"),
     q_type: str = Query("单选题", description="题目类型 (单选题, 多选题, 填空题, 解答题)"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user: User = Depends(require_authenticated),
 ):
     """
     通过智能题目生成 Agent SDK 进行流式生成题目
@@ -27,6 +30,7 @@ async def generate_practice_stream(
     # 2. 负责初始状态构建
     # 3. 负责流流分段产生
     
+    assert_can_read_node(db, user, node_id)
     return StreamingResponse(
         generate_sdk.run_generate_practice_stream(db, node_id, difficulty, q_type), 
         media_type="text/event-stream"

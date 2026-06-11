@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { 
   Search, 
   AlertCircle,
@@ -15,7 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import { useToast } from "@/hooks/use-toast";
-import { questionService } from "@/services/questionService";
+import { LibraryQuestion, questionService } from "@/services/questionService";
 import { outlineService, Outline } from "@/services/outlineService";
 
 // Modular Components
@@ -26,7 +26,6 @@ import { nodeService, KnowledgeNode } from "@/services/nodeService";
 
 export default function LibraryPage() {
   const t = useTranslations('Practice.library');
-  const tBtn = useTranslations('Practice.outline.actions');
   const { toast } = useToast();
   
   const { 
@@ -39,7 +38,7 @@ export default function LibraryPage() {
   } = useLibraryStore();
   
   // States
-  const [questions, setQuestions] = useState<any[]>([]);
+  const [questions, setQuestions] = useState<LibraryQuestion[]>([]);
   const [total, setTotal] = useState(0);
   const [outlines, setOutlines] = useState<Outline[]>([]);
   const [nodes, setNodes] = useState<KnowledgeNode[]>([]);
@@ -109,8 +108,8 @@ export default function LibraryPage() {
       }
       
       setTotal(questionsData.total);
-    } catch (err: any) {
-      setError(err.message || 'Unknown error');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
@@ -129,8 +128,8 @@ export default function LibraryPage() {
        setQuestions(prev => prev.filter(q => q.id !== deleteModal.id));
        setTotal(prev => prev - 1);
        setDeleteModal({ isOpen: false, id: null });
-    } catch (err: any) {
-       toast({ title: "Error", description: err.message || "Failed to delete question", variant: "destructive" });
+    } catch (err: unknown) {
+       toast({ title: "Error", description: err instanceof Error ? err.message : "Failed to delete question", variant: "destructive" });
     }
   }, [deleteModal.id, toast]);
 
@@ -158,10 +157,10 @@ export default function LibraryPage() {
         description: `成功处理 ${res.processed_count} 道题目，其中 ${res.success_count} 道分类成功。` 
       });
       fetchData();
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({ 
         title: "分类失败", 
-        description: err.message || "AI 分类过程中出现错误", 
+        description: err instanceof Error ? err.message : "AI 分类过程中出现错误", 
         variant: "destructive" 
       });
     } finally {
@@ -291,7 +290,6 @@ export default function LibraryPage() {
                     <LibraryQuestionCard 
                       key={q.id} 
                       question={q} 
-                      t={t}
                       onDelete={(id) => setDeleteModal({ isOpen: true, id })}
                       onRefresh={handleRefresh}
                     />

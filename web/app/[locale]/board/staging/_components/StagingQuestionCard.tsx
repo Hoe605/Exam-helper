@@ -11,7 +11,6 @@ interface StagingQuestionCardProps {
   onApprove: (id: number) => void;
   onDelete: (id: number) => void;
   onViewDuplicate: (q: StagingQuestion) => void;
-  viewDuplicateLabel: string;
 }
 
 import { memo } from 'react';
@@ -20,8 +19,7 @@ export const StagingQuestionCard = memo(function StagingQuestionCard({
   question: q, 
   onApprove, 
   onDelete, 
-  onViewDuplicate,
-  viewDuplicateLabel
+  onViewDuplicate
 }: StagingQuestionCardProps) {
   return (
     <div className="bg-white rounded-[40px] p-10 border border-transparent hover:border-indigo-500/20 shadow-2xl shadow-black/[0.02] hover:shadow-indigo-900/5 transition-all group relative overflow-hidden flex flex-col gap-8">

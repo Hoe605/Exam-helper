@@ -9,19 +9,14 @@ import {
   RefreshCcw,
   Loader2,
   AlertCircle,
-  BookOpen,
-  Layers,
-  GitBranch,
   Search,
   FolderTree,
   TreePine,
   Maximize,
   ChevronDown,
-  ChevronRight,
   Plus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import { Link } from '@/i18n/routing';
 import { motion, AnimatePresence } from "framer-motion";
@@ -81,8 +76,8 @@ export default function KnowledgeTreePage() {
       ]);
       setApiNodes(nodesData);
       setOutline(outlineData);
-    } catch (err: any) {
-      setError(err.message || 'Unknown error');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
@@ -209,7 +204,7 @@ export default function KnowledgeTreePage() {
                           >
                             {outline?.desc && (
                               <p className="text-[#767683] text-sm font-medium leading-relaxed line-clamp-2 italic opacity-80 mt-2">
-                                "{outline.desc}"
+                                &quot;{outline.desc}&quot;
                               </p>
                             )}
                             

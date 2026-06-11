@@ -3,20 +3,16 @@
 import { useTranslations } from 'next-intl';
 import { useState, useEffect } from 'react';
 import { 
-  Search, 
   Plus, 
   Map, 
-  MoreVertical, 
   Network, 
   Layers, 
-  FileEdit, 
   Calendar,
   CheckCircle2,
   Trash2,
   Loader2,
   AlertCircle,
-  RefreshCcw,
-  Activity
+  RefreshCcw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,7 +22,7 @@ import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from '@/i18n/routing';
-import { useOutlineStore, Outline } from "@/store/useOutlineStore";
+import { useOutlineStore } from "@/store/useOutlineStore";
 
 export default function OutlinesPage() {
   const { toast } = useToast();

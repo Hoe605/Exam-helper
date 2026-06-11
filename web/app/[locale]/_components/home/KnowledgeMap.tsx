@@ -6,6 +6,7 @@ import Image from 'next/image';
 
 export function KnowledgeMap() {
   const t = useTranslations('Landing.knowledgeMap');
+  const featureKeys = ['feature1', 'feature2', 'feature3'] as const;
 
   return (
     <section className="py-32 px-6 bg-white dark:bg-black transition-colors duration-500">
@@ -18,12 +19,12 @@ export function KnowledgeMap() {
             {t('desc')}
           </p>
           <ul className="space-y-4 mb-10">
-            {[1, 2, 3].map((i) => (
-              <li key={i} className="flex items-center gap-3 text-brand-primary font-semibold group">
+            {featureKeys.map((featureKey) => (
+              <li key={featureKey} className="flex items-center gap-3 text-brand-primary font-semibold group">
                 <div className="w-6 h-6 rounded-full bg-brand-secondary/10 flex items-center justify-center group-hover:scale-125 transition-transform duration-300">
                   <CheckCircle2 className="w-5 h-5 text-brand-secondary" />
                 </div>
-                <span>{t(`feature${i}` as any)}</span>
+                <span>{t(featureKey)}</span>
               </li>
             ))}
           </ul>

@@ -5,6 +5,7 @@ from .service import CourseService
 from . import schemas
 from src.core.auth.fastapi_users import fastapi_users
 from src.db.models import User
+from src.core.auth.permissions import assert_can_read_course, assert_can_teach_course, assert_can_write_outline, is_teacher
 from typing import List
 
 current_active_user = fastapi_users.current_user(active=True)
@@ -21,7 +22,7 @@ async def create_course(
     user: User = Depends(current_active_user)
 ):
     """创建新课程"""
-    if user.role not in ["teacher", "admin"]:
+    if not is_teacher(user):
         raise HTTPException(status_code=403, detail="Unauthorized role")
         
     result = await CourseService.create_course(db, course.name, course.desc, user.id)
@@ -54,6 +55,7 @@ async def get_course(
     user: User = Depends(current_active_user)
 ):
     """获取课程基本信息"""
+    assert_can_read_course(db, user, course_id)
     course = await CourseService.get_course(db, course_id)
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
@@ -66,6 +68,7 @@ async def get_course_outlines(
     user: User = Depends(current_active_user)
 ):
     """获取课程关联的所有大纲"""
+    assert_can_read_course(db, user, course_id)
     return await CourseService.get_course_outlines(db, course_id)
 
 @router.post("/{course_id}/outlines")
@@ -76,8 +79,8 @@ async def link_outline_to_course(
     user: User = Depends(current_active_user)
 ):
     """将大纲关联至课程 (限教师)"""
-    if user.role not in ["teacher", "admin"]:
-        raise HTTPException(status_code=403, detail="Unauthorized role")
+    assert_can_teach_course(db, user, course_id)
+    assert_can_write_outline(db, user, outline_id)
     return await CourseService.link_outline(db, course_id, outline_id)
 
 @router.get("/{course_id}/students", response_model=List[schemas.CourseStudent])
@@ -87,6 +90,5 @@ async def get_course_students(
     user: User = Depends(current_active_user)
 ):
     """获取课程下属的所有学生列表 (限教师)"""
-    if user.role not in ["teacher", "admin"]:
-        raise HTTPException(status_code=403, detail="Unauthorized role")
+    assert_can_teach_course(db, user, course_id)
     return await CourseService.get_course_students(db, course_id)

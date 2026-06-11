@@ -1,14 +1,8 @@
 import { create } from 'zustand';
-import { courseService } from '@/services/courseService';
-
-interface Student {
-  id: number;
-  email: string;
-  role: string;
-}
+import { courseService, CourseStudent } from '@/services/courseService';
 
 interface CourseState {
-  students: Student[];
+  students: CourseStudent[];
   isLoading: boolean;
   error: string | null;
   
@@ -26,8 +20,8 @@ export const useCourseStore = create<CourseState>((set) => ({
     try {
       const data = await courseService.getCourseStudents(courseId);
       set({ students: data, isLoading: false });
-    } catch (err: any) {
-      set({ error: err.message || '获取学生列表失败', isLoading: false });
+    } catch (err: unknown) {
+      set({ error: err instanceof Error ? err.message : '获取学生列表失败', isLoading: false });
     }
   },
 }));

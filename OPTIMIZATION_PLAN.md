@@ -126,9 +126,9 @@ Acceptance:
 - [x] Phase 2.1: Typed stream events
 - [x] Phase 2.2: Run metadata
 - [x] Phase 3.1: Cancellation
-- [ ] Phase 3.2: Standard error payloads
-- [ ] Phase 4.1: Agent unit tests
-- [ ] Phase 4.2: Incremental frontend lint cleanup
+- [x] Phase 3.2: Standard error payloads
+- [x] Phase 4.1: Agent unit tests
+- [x] Phase 4.2: Incremental frontend lint cleanup
 
 ## Completed Work
 
@@ -167,11 +167,34 @@ Acceptance:
 - Converted the staging extraction abort button and practice generation button into real stream cancellation controls.
 - Added focused tests for outline agent task cancellation and cleanup.
 
+### Phase 3.2
+
+- Added a backend `make_error_payload` helper that standardizes errors as `{ message, code, recoverable, details }`.
+- Updated stream error events for outline extraction, question extraction, and practice generation to include stable error codes and details.
+- Updated the question classification HTTP failure path to return the same standard error shape via FastAPI `detail`.
+- Added frontend `ApiError` parsing so standard API errors keep `message`, `code`, `recoverable`, `details`, and HTTP `status`.
+- Added focused tests for standardized stream error payloads and stream run metadata on errors.
+
+### Phase 4.1
+
+- Added mocked agent stream tests for the question extraction API wrapper so progress and done SSE payloads can be verified without real LLM calls.
+- Added mocked LangGraph event tests for practice generation so token filtering, resource metadata, and done events are covered without invoking the compiled graph.
+- Added a missing-node practice generation test that verifies the standardized `NODE_NOT_FOUND` stream error payload.
+
+### Phase 4.2
+
+- Cleaned touched frontend files to remove low-risk lint issues: unnecessary `any`, unused imports, unescaped quote text, `prefer-const`, and `@ts-ignore` comments.
+- Confirmed the changed frontend files are lint-clean.
+- Re-ran the full frontend lint baseline; remaining historical lint debt is now `28 errors, 48 warnings`, down from `38 errors, 53 warnings`.
+
 ## Verification
 
-- `.venv/bin/python -m pytest`: `13 passed, 1 skipped`
+- `.venv/bin/python -m pytest`: `18 passed, 1 skipped`
 - `.venv/bin/python scripts/api_explorer.py list nodes`: confirms `POST /nodes`
 - `npm run lint -- services/nodeService.ts`: passed
 - `npm run lint -- lib/stream-client.ts lib/stream-events.ts store/usePracticeStore.ts store/useOutlineStore.ts services/outlineService.ts components/CreateOutlineWizard.tsx 'app/[locale]/board/staging/add/page.tsx'`: passed
 - `npm run lint -- services/questionService.ts services/outlineService.ts services/practiceService.ts components/CreateOutlineWizard.tsx 'app/[locale]/board/staging/add/page.tsx' store/usePracticeStore.ts 'app/[locale]/board/_components/PracticeConfig.tsx'`: passed
+- `npm run lint -- lib/api-client.ts lib/stream-events.ts store/usePracticeStore.ts components/CreateOutlineWizard.tsx 'app/[locale]/board/staging/add/page.tsx' services/questionService.ts`: passed
+- `npm run lint -- 'app/[locale]/_components/home/KnowledgeMap.tsx' 'app/[locale]/_components/home/LoginModal.tsx' 'app/[locale]/board/_components/CourseSidebar.tsx' 'app/[locale]/layout.tsx' components/SmartContent.tsx 'app/api/[[...slug]]/route.ts'`: passed
+- `npm run lint`: still fails on historical untouched files with `28 errors, 48 warnings`
 - `npx tsc --noEmit`: passed

@@ -1,7 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { 
   Plus, 
   Users, 
@@ -44,21 +43,21 @@ export default function CoursesPage() {
   const [joinOpen, setJoinOpen] = useState(false);
   const [joinCode, setJoinCode] = useState('');
 
-  const fetchCourses = async () => {
+  const fetchCourses = useCallback(async () => {
     try {
       setLoading(true);
       const data = await courseService.getMyCourses();
       setCourses(data || []);
-    } catch (err) {
+    } catch {
       toast({ title: "Error", description: "Failed to load courses", variant: "destructive" });
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     fetchCourses();
-  }, []);
+  }, [fetchCourses]);
 
   const handleCreateCourse = async () => {
     if (!newName.trim()) {
@@ -72,7 +71,7 @@ export default function CoursesPage() {
       setNewName('');
       setNewDesc('');
       fetchCourses();
-    } catch (err) {
+    } catch {
       toast({ title: "Error", description: "Failed to create course", variant: "destructive" });
     }
   };
@@ -85,7 +84,7 @@ export default function CoursesPage() {
       setJoinOpen(false);
       setJoinCode('');
       fetchCourses();
-    } catch (err) {
+    } catch {
       toast({ title: "Error", description: "Invalid code or already joined", variant: "destructive" });
     }
   };

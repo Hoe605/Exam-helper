@@ -56,8 +56,8 @@ export default function EditNodeModal({
       toast({ title: 'Success', description: 'Node updated successfully' });
       onSuccess(updated);
       onClose();
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message || 'Failed to update node', variant: 'destructive' });
+    } catch (err: unknown) {
+      toast({ title: 'Error', description: err instanceof Error ? err.message : 'Failed to update node', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -73,8 +73,8 @@ export default function EditNodeModal({
       toast({ title: 'Deleted', description: 'Node and its sub-structure removed.' });
       onDelete(node.id);
       onClose();
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message || 'Failed to delete node', variant: 'destructive' });
+    } catch (err: unknown) {
+      toast({ title: 'Error', description: err instanceof Error ? err.message : 'Failed to delete node', variant: 'destructive' });
     } finally {
       setDeleting(false);
     }

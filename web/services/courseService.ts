@@ -1,4 +1,5 @@
 import { apiClient } from '@/lib/api-client';
+import { Outline } from './outlineService';
 
 export interface Course {
   id: number;
@@ -8,6 +9,17 @@ export interface Course {
   is_active: boolean;
   created_at: string;
   creator_id: number;
+}
+
+export interface CourseStudent {
+  id: number;
+  email: string;
+  role: string;
+}
+
+export interface CourseOutlineLink {
+  course_id: number;
+  outline_id: number;
 }
 
 export const courseService = {
@@ -23,19 +35,19 @@ export const courseService = {
     return apiClient.get('/courses');
   },
 
-  async getCourseOutlines(courseId: number): Promise<any[]> {
-    return apiClient.get(`/courses/${courseId}/outlines`);
+  async getCourseOutlines(courseId: number): Promise<Outline[]> {
+    return apiClient.get<Outline[]>(`/courses/${courseId}/outlines`);
   },
 
   async getCourse(id: number | string): Promise<Course> {
     return apiClient.get(`/courses/${id}`);
   },
 
-  async getCourseStudents(id: number | string): Promise<any[]> {
-    return apiClient.get(`/courses/${id}/students`);
+  async getCourseStudents(id: number | string): Promise<CourseStudent[]> {
+    return apiClient.get<CourseStudent[]>(`/courses/${id}/students`);
   },
 
-  async linkOutline(courseId: number | string, outlineId: number): Promise<any> {
-    return apiClient.post(`/courses/${courseId}/outlines`, { outline_id: outlineId });
+  async linkOutline(courseId: number | string, outlineId: number): Promise<CourseOutlineLink> {
+    return apiClient.post<CourseOutlineLink>(`/courses/${courseId}/outlines`, { outline_id: outlineId });
   }
 };
